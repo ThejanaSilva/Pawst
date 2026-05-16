@@ -12,4 +12,13 @@ class StorageService {
     await ref.putFile(file);
     return await ref.getDownloadURL();
   }
+
+  static Future<String> uploadLostPetPhoto({required File file, required String userId}) async {
+    final fileName = file.path.split(RegExp(r'[\\/]+')).last;
+    final ext = fileName.contains('.') ? fileName.split('.').last : 'jpg';
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final ref = _storage.ref().child('lost_pets/$userId/$ts.$ext');
+    await ref.putFile(file);
+    return await ref.getDownloadURL();
+  }
 }

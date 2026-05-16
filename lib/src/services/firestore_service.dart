@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/post.dart';
 import '../models/pet.dart';
 import '../models/vaccination.dart';
+import '../models/lost_pet_report.dart';
 
 class FirestoreService {
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -54,5 +55,26 @@ class FirestoreService {
 
   static Future<void> addVaccination(Vaccination vac) async {
     await _db.collection('vaccinations').add(vac.toMap()..remove('id'));
+  }
+
+  // --- Lost Pets ---
+  static Stream<List<LostPetReport>> streamLostPets({bool excludeFound = true}) {
+    var query = _db.collection('lost_pets').orderBy('createdAt', descending: true);
+    if (excludeFound) {
+      query = query.where('isFound', isEqualTo: false);
+    }
+    return query.snapshots().map((snap) {
+      return snap.docs.map((doc) => LostPetReport.fromMap(doc.data(), id: doc.id)).toList();
+    });
+  }
+
+  static Future<void> addLostPetReport(LostPetReport report) async {
+    await _db.collection('lost_pets').add(report.toMap()
+      ..remove('id')
+      ..['createdAt'] = FieldValue.serverTimestamp());
+  }
+
+  static Future<void> markLostPetAsFound(String reportId) async {
+    await _db.collection('lost_pets').doc(reportId).update({'isFound': true});
   }
 }
