@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'src/screens/auth_screen.dart';
 import 'src/screens/feed_screen.dart';
+import 'src/screens/lost_pets_screen.dart';
+import 'src/screens/forum_screen.dart';
 import 'src/services/auth_service.dart';
 import 'src/services/firebase_service.dart';
 
@@ -21,6 +23,32 @@ class PawstApp extends StatelessWidget {
   }
 }
 
+class MainHomeScreen extends StatefulWidget {
+  @override
+  _MainHomeScreenState createState() => _MainHomeScreenState();
+}
+
+class _MainHomeScreenState extends State<MainHomeScreen> {
+  int _idx = 0;
+  final _screens = [FeedScreen(), LostPetsScreen(), ForumScreen()];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _screens[_idx],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _idx,
+        onTap: (i) => setState(() => _idx = i),
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Lost Pets'),
+          BottomNavigationBarItem(icon: Icon(Icons.forum), label: 'Forum'),
+        ],
+      ),
+    );
+  }
+}
+
 class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -31,7 +59,7 @@ class AuthGate extends StatelessWidget {
           return Scaffold(body: Center(child: CircularProgressIndicator()));
         }
         if (snapshot.data != null) {
-          return FeedScreen();
+          return MainHomeScreen(); // Replaced FeedScreen directly with MainHomeScreen
         }
         return AuthScreen();
       },

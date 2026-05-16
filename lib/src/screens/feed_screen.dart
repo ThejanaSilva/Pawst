@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import '../models/pet.dart';
 import '../models/post.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import 'post_editor_screen.dart';
+import 'pet_profile_screen.dart';
 
 class FeedScreen extends StatelessWidget {
   @override
@@ -11,6 +13,10 @@ class FeedScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Pawst! Feed'),
         actions: [
+          IconButton(
+            onPressed: () => _showMyPets(context),
+            icon: Icon(Icons.pets),
+          ),
           IconButton(
             onPressed: () async {
               await AuthService.signOut();
@@ -72,6 +78,60 @@ class FeedScreen extends StatelessWidget {
             },
           );
         },
+      ),
+    );
+  }
+
+  void _showMyPets(BuildContext context) {
+    final user = AuthService.currentUser;
+    if (user == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => Column(
+        children: [
+          ListTile(
+            title: Text('My Pets', style: TextStyle(fontWeight: FontWeight.bold)),
+            trailing: IconButton(
+              icon: Icon(Icons.add),
+              onPressed: () {
+                // stub for adding pet
+                FirestoreService.addPet(Pet(
+                  id: '',
+                  ownerId: user.uid,
+                  name: 'New Pet ${DateTime.now().second}',
+                  species: 'Dog',
+                  about: 'A good boy',
+                ));
+              },
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder<List<Pet>>(
+              stream: FirestoreService.streamUserPets(user.uid),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+                final pets = snapshot.data!;
+                if (pets.isEmpty) return Center(child: Text('No pets yet. Tap + to add.'));
+                return ListView.builder(
+                  itemCount: pets.length,
+                  itemBuilder: (context, i) {
+                    final pet = pets[i];
+                    return ListTile(
+                      leading: Icon(Icons.pets),
+                      title: Text(pet.name),
+                      subtitle: Text(pet.species),
+                      onTap: () {
+                        Navigator.pop(ctx); // close bottom sheet
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => PetProfileScreen(pet: pet)));
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          )
+        ],
       ),
     );
   }
