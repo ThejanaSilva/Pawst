@@ -3,6 +3,7 @@ import '../models/post.dart';
 import '../models/pet.dart';
 import '../models/vaccination.dart';
 import '../models/lost_pet_report.dart';
+import '../models/forum.dart';
 
 class FirestoreService {
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -76,5 +77,35 @@ class FirestoreService {
 
   static Future<void> markLostPetAsFound(String reportId) async {
     await _db.collection('lost_pets').doc(reportId).update({'isFound': true});
+  }
+
+  // --- Forum ---
+  static Stream<List<ForumTopic>> streamForumTopics() {
+    return _db.collection('forum_topics').orderBy('createdAt', descending: true).snapshots().map((snap) {
+      return snap.docs.map((doc) => ForumTopic.fromMap(doc.data(), id: doc.id)).toList();
+    });
+  }
+
+  static Future<void> addForumTopic(ForumTopic topic) async {
+    await _db.collection('forum_topics').add(topic.toMap()
+      ..remove('id')
+      ..['createdAt'] = FieldValue.serverTimestamp());
+  }
+
+  static Stream<List<ForumComment>> streamTopicComments(String topicId) {
+    return _db
+        .collection('forum_comments')
+        .where('topicId', isEqualTo: topicId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snap) {
+      return snap.docs.map((doc) => ForumComment.fromMap(doc.data(), id: doc.id)).toList();
+    });
+  }
+
+  static Future<void> addForumComment(ForumComment comment) async {
+    await _db.collection('forum_comments').add(comment.toMap()
+      ..remove('id')
+      ..['createdAt'] = FieldValue.serverTimestamp());
   }
 }
