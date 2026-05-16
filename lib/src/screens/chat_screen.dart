@@ -7,7 +7,7 @@ class ChatScreen extends StatefulWidget {
   final String roomId;
   final String otherUserId;
 
-  const ChatScreen({required this.roomId, required this.otherUserId});
+  const ChatScreen({super.key, required this.roomId, required this.otherUserId});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -39,11 +39,11 @@ class _ChatScreenState extends State<ChatScreen> {
             child: StreamBuilder<List<ChatMessage>>(
               stream: FirestoreService.streamChatMessages(widget.roomId),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
-                if (snapshot.hasError) return Center(child: Text('Error loading messages'));
+                if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+                if (snapshot.hasError) return const Center(child: Text('Error loading messages'));
 
                 final msgs = snapshot.data ?? [];
-                if (msgs.isEmpty) return Center(child: Text('No messages yet. Say hi!'));
+                if (msgs.isEmpty) return const Center(child: Text('No messages yet. Say hi!'));
 
                 return ListView.builder(
                   reverse: true,
@@ -55,8 +55,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     return Align(
                       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
                           color: isMe ? Colors.teal[100] : Colors.grey[300],
                           borderRadius: BorderRadius.circular(12),
@@ -71,7 +71,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           SafeArea(
             child: Container(
-              padding: EdgeInsets.all(8),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 border: Border(top: BorderSide(color: Colors.grey[300]!)),
               ),
@@ -88,12 +88,12 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         filled: true,
                         fillColor: Colors.grey[200],
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.send, color: Colors.teal),
+                    icon: const Icon(Icons.send, color: Colors.teal),
                     onPressed: _send,
                   )
                 ],

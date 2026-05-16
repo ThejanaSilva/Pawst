@@ -6,6 +6,8 @@ import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
 
 class PostEditorScreen extends StatefulWidget {
+  const PostEditorScreen({super.key});
+
   @override
   _PostEditorScreenState createState() => _PostEditorScreenState();
 }
@@ -57,7 +59,7 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('New Pawst!')),
+      appBar: AppBar(title: const Text('New Pawst!')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -67,21 +69,21 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
                 ? Container(
                     height: 220,
                     color: Colors.grey[200],
-                    child: Center(child: Text('No image selected')),
+                    child: const Center(child: Text('No image selected')),
                   )
                 : Image.file(_mediaFile!, height: 220, fit: BoxFit.cover),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             TextField(
               controller: _captionCtrl,
-              decoration: InputDecoration(labelText: 'Caption'),
+              decoration: const InputDecoration(labelText: 'Caption'),
               maxLines: 2,
             ),
-            SizedBox(height: 12),
-            OutlinedButton(onPressed: _pickImage, child: Text('Pick photo from gallery')),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
+            OutlinedButton(onPressed: _pickImage, child: const Text('Pick photo from gallery')),
+            const SizedBox(height: 12),
             _isUploading
-                ? Center(child: CircularProgressIndicator())
-                : ElevatedButton(onPressed: _submit, child: Text('Post')),
+                ? const Center(child: CircularProgressIndicator())
+                : ElevatedButton(onPressed: _submit, child: const Text('Post')),
           ],
         ),
       ),

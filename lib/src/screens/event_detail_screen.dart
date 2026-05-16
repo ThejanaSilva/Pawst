@@ -27,7 +27,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   Future<void> _toggleRsvp() async {
     final user = AuthService.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please sign in to RSVP.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please sign in to RSVP.')));
       return;
     }
     final newAttending = !_isAttending;
@@ -50,50 +50,50 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Event Details')),
+      appBar: AppBar(title: const Text('Event Details')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.event.title, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            SizedBox(height: 12),
+            Text(widget.event.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.calendar_today, color: Colors.teal),
-                SizedBox(width: 8),
-                Text(widget.event.eventDate.toString().split('.')[0] , style: TextStyle(fontSize: 16)),
+                const Icon(Icons.calendar_today, color: Colors.teal),
+                const SizedBox(width: 8),
+                Text(widget.event.eventDate.toString().split('.')[0] , style: const TextStyle(fontSize: 16)),
               ],
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.location_on, color: Colors.teal),
-                SizedBox(width: 8),
-                Text(widget.event.location, style: TextStyle(fontSize: 16)),
+                const Icon(Icons.location_on, color: Colors.teal),
+                const SizedBox(width: 8),
+                Text(widget.event.location, style: const TextStyle(fontSize: 16)),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.people, color: Colors.teal),
-                SizedBox(width: 8),
-                Text('$_rsvpCount attending', style: TextStyle(fontSize: 16)),
+                const Icon(Icons.people, color: Colors.teal),
+                const SizedBox(width: 8),
+                Text('$_rsvpCount attending', style: const TextStyle(fontSize: 16)),
               ],
             ),
-            Divider(height: 32),
-            Text('About this event', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Text(widget.event.description, style: TextStyle(fontSize: 16)),
-            SizedBox(height: 48),
+            const Divider(height: 32),
+            const Text('About this event', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(widget.event.description, style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 48),
             Center(
               child: ElevatedButton(
                 onPressed: _toggleRsvp,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _isAttending ? Colors.redAccent : Colors.teal,
-                  padding: EdgeInsets.symmetric(horizontal: 48, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
                 ),
-                child: Text(_isAttending ? 'Cancel RSVP' : 'RSVP Now', style: TextStyle(fontSize: 18)),
+                child: Text(_isAttending ? 'Cancel RSVP' : 'RSVP Now', style: const TextStyle(fontSize: 18)),
               ),
             )
           ],

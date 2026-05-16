@@ -22,7 +22,7 @@ class _TopicDetailScreenState extends State<TopicDetailScreen> {
 
     final user = AuthService.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please sign in to reply.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please sign in to reply.')));
       return;
     }
 
@@ -60,34 +60,34 @@ class _TopicDetailScreenState extends State<TopicDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Discussion')),
+      appBar: AppBar(title: const Text('Discussion')),
       body: Column(
         children: [
           // Topic Header
           Container(
             width: double.infinity,
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             color: Colors.teal.shade50,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.topic.title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-                Text(widget.topic.description, style: TextStyle(fontSize: 16)),
-                SizedBox(height: 8),
+                Text(widget.topic.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text(widget.topic.description, style: const TextStyle(fontSize: 16)),
+                const SizedBox(height: 8),
                 Text('Posted on ${widget.topic.createdAt.toString().split('.')[0]}', style: TextStyle(fontSize: 12, color: Colors.grey.shade600))
               ],
             ),
           ),
-          Divider(height: 1),
+          const Divider(height: 1),
           // Comments Stream
           Expanded(
             child: StreamBuilder<List<ForumComment>>(
               stream: FirestoreService.streamTopicComments(widget.topic.id),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                 final comments = snapshot.data!;
-                if (comments.isEmpty) return Center(child: Text('No replies yet. Be the first to help!'));
+                if (comments.isEmpty) return const Center(child: Text('No replies yet. Be the first to help!'));
                 
                 return ListView.builder(
                   reverse: true, // Display latest at the bottom next to the input
@@ -116,8 +116,8 @@ class _TopicDetailScreenState extends State<TopicDetailScreen> {
           ),
           // Comment Input
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            decoration: BoxDecoration(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            decoration: const BoxDecoration(
               color: Colors.white,
               boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)]
             ),
@@ -129,16 +129,16 @@ class _TopicDetailScreenState extends State<TopicDetailScreen> {
                     decoration: InputDecoration(
                       hintText: 'Add a helpful reply...',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8)
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
                     ),
                     maxLines: null,
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 _isSending
-                  ? Padding(padding: const EdgeInsets.all(12.0), child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)))
+                  ? const Padding(padding: EdgeInsets.all(12.0), child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)))
                   : IconButton(
-                      icon: Icon(Icons.send, color: Colors.teal),
+                      icon: const Icon(Icons.send, color: Colors.teal),
                       onPressed: _postComment,
                     )
               ],

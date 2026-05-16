@@ -15,6 +15,8 @@ void main() async {
 }
 
 class PawstApp extends StatelessWidget {
+  const PawstApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -26,6 +28,8 @@ class PawstApp extends StatelessWidget {
 }
 
 class MainHomeScreen extends StatefulWidget {
+  const MainHomeScreen({super.key});
+
   @override
   _MainHomeScreenState createState() => _MainHomeScreenState();
 }
@@ -44,7 +48,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         selectedItemColor: Colors.teal,
         unselectedItemColor: Colors.grey,
         onTap: (i) => setState(() => _idx = i),
-        items: [
+        items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Lost Pets'),
           BottomNavigationBarItem(icon: Icon(Icons.forum), label: 'Forum'),
@@ -57,13 +61,15 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
 }
 
 class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
       stream: AuthService.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
         if (snapshot.data != null) {
           return MainHomeScreen(); // Replaced FeedScreen directly with MainHomeScreen

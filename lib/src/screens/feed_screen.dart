@@ -8,21 +8,23 @@ import 'pet_profile_screen.dart';
 import 'chat_screen.dart';
 
 class FeedScreen extends StatelessWidget {
+  const FeedScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pawst! Feed'),
+        title: const Text('Pawst! Feed'),
         actions: [
           IconButton(
             onPressed: () => _showMyPets(context),
-            icon: Icon(Icons.pets),
+            icon: const Icon(Icons.pets),
           ),
           IconButton(
             onPressed: () async {
               await AuthService.signOut();
             },
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
           )
         ],
       ),
@@ -30,27 +32,27 @@ class FeedScreen extends StatelessWidget {
         onPressed: () {
           Navigator.push(context, MaterialPageRoute(builder: (_) => PostEditorScreen()));
         },
-        child: Icon(Icons.add_a_photo),
+        child: const Icon(Icons.add_a_photo),
       ),
       body: StreamBuilder<List<Post>>(
         stream: FirestoreService.streamFeed(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Failed to load feed'));
+            return const Center(child: Text('Failed to load feed'));
           }
           final posts = snapshot.data ?? [];
           if (posts.isEmpty) {
-            return Center(child: Text('No posts yet. Create the first Pawst!'));
+            return const Center(child: Text('No posts yet. Create the first Pawst!'));
           }
           return ListView.builder(
             itemCount: posts.length,
             itemBuilder: (context, i) {
               final p = posts[i];
               return Card(
-                margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -64,8 +66,8 @@ class FeedScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(p.caption, style: TextStyle(fontSize: 16)),
-                          SizedBox(height: 6),
+                          Text(p.caption, style: const TextStyle(fontSize: 16)),
+                          const SizedBox(height: 6),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -75,8 +77,8 @@ class FeedScreen extends StatelessWidget {
                               ),
                               if (p.authorId != AuthService.currentUser?.uid)
                                 TextButton.icon(
-                                  icon: Icon(Icons.chat_bubble_outline, size: 16),
-                                  label: Text('Message'),
+                                  icon: const Icon(Icons.chat_bubble_outline, size: 16),
+                                  label: const Text('Message'),
                                   onPressed: () async {
                                     final curUser = AuthService.currentUser;
                                     if (curUser == null) return;
@@ -110,9 +112,9 @@ class FeedScreen extends StatelessWidget {
       builder: (ctx) => Column(
         children: [
           ListTile(
-            title: Text('My Pets', style: TextStyle(fontWeight: FontWeight.bold)),
+            title: const Text('My Pets', style: TextStyle(fontWeight: FontWeight.bold)),
             trailing: IconButton(
-              icon: Icon(Icons.add),
+              icon: const Icon(Icons.add),
               onPressed: () {
                 // stub for adding pet
                 FirestoreService.addPet(Pet(
@@ -129,15 +131,15 @@ class FeedScreen extends StatelessWidget {
             child: StreamBuilder<List<Pet>>(
               stream: FirestoreService.streamUserPets(user.uid),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                 final pets = snapshot.data!;
-                if (pets.isEmpty) return Center(child: Text('No pets yet. Tap + to add.'));
+                if (pets.isEmpty) return const Center(child: Text('No pets yet. Tap + to add.'));
                 return ListView.builder(
                   itemCount: pets.length,
                   itemBuilder: (context, i) {
                     final pet = pets[i];
                     return ListTile(
-                      leading: Icon(Icons.pets),
+                      leading: const Icon(Icons.pets),
                       title: Text(pet.name),
                       subtitle: Text(pet.species),
                       onTap: () {

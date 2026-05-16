@@ -7,6 +7,8 @@ import '../services/storage_service.dart';
 import '../models/lost_pet_report.dart';
 
 class ReportLostPetScreen extends StatefulWidget {
+  const ReportLostPetScreen({super.key});
+
   @override
   _ReportLostPetScreenState createState() => _ReportLostPetScreenState();
 }
@@ -86,7 +88,7 @@ class _ReportLostPetScreenState extends State<ReportLostPetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Report a Lost Pet')),
+      appBar: AppBar(title: const Text('Report a Lost Pet')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -102,29 +104,29 @@ class _ReportLostPetScreenState extends State<ReportLostPetScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.add_a_photo, size: 40, color: Colors.grey[600]),
-                          SizedBox(height: 8),
-                          Text('Tap to add photo of the pet'),
+                          const SizedBox(height: 8),
+                          const Text('Tap to add photo of the pet'),
                         ],
                       ))
                     : Image.file(_mediaFile!, fit: BoxFit.cover),
               ),
             ),
-            SizedBox(height: 16),
-            TextField(controller: _nameCtrl, decoration: InputDecoration(labelText: 'Pet Name *')),
-            TextField(controller: _speciesCtrl, decoration: InputDecoration(labelText: 'Species (Dog, Cat, etc.)')),
-            TextField(controller: _breedCtrl, decoration: InputDecoration(labelText: 'Breed')),
-            TextField(controller: _locationCtrl, decoration: InputDecoration(labelText: 'Last Known Location *')),
-            TextField(controller: _contactCtrl, decoration: InputDecoration(labelText: 'Contact Information *', hintText: 'Phone number or email')),
-            SizedBox(height: 24),
+            const SizedBox(height: 16),
+            TextField(controller: _nameCtrl, decoration: const InputDecoration(labelText: 'Pet Name *')),
+            TextField(controller: _speciesCtrl, decoration: const InputDecoration(labelText: 'Species (Dog, Cat, etc.)')),
+            TextField(controller: _breedCtrl, decoration: const InputDecoration(labelText: 'Breed')),
+            TextField(controller: _locationCtrl, decoration: const InputDecoration(labelText: 'Last Known Location *')),
+            TextField(controller: _contactCtrl, decoration: const InputDecoration(labelText: 'Contact Information *', hintText: 'Phone number or email')),
+            const SizedBox(height: 24),
             _isUploading 
-              ? Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator())
               : ElevatedButton.icon(
                   onPressed: _submit, 
-                  icon: Icon(Icons.campaign), 
-                  label: Text('Post Alert'),
+                  icon: const Icon(Icons.campaign), 
+                  label: const Text('Post Alert'),
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    textStyle: TextStyle(fontSize: 16)
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    textStyle: const TextStyle(fontSize: 16)
                   ),
                 )
           ],

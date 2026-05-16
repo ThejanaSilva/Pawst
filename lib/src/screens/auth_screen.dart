@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
 class AuthScreen extends StatefulWidget {
+  const AuthScreen({super.key});
+
   @override
   _AuthScreenState createState() => _AuthScreenState();
 }
@@ -58,7 +60,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Pawst! — Sign in')),
+      appBar: AppBar(title: const Text('Pawst! — Sign in')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -67,28 +69,28 @@ class _AuthScreenState extends State<AuthScreen> {
             TextField(
               controller: _emailCtrl,
               keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(labelText: 'Email'),
+              decoration: const InputDecoration(labelText: 'Email'),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             TextField(
               controller: _passCtrl,
               obscureText: true,
-              decoration: InputDecoration(labelText: 'Password'),
+              decoration: const InputDecoration(labelText: 'Password'),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Checkbox(value: _isSignUp, onChanged: (v) => setState(() => _isSignUp = v ?? false)),
-                Text('Create account (sign up)'),
+                const Text('Create account (sign up)'),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             _isLoading
-                ? CircularProgressIndicator()
+                ? const CircularProgressIndicator()
                 : ElevatedButton(onPressed: _submit, child: Text(_isSignUp ? 'Sign up' : 'Sign in')),
-            SizedBox(height: 8),
-            Text('Or continue anonymously for prototyping'),
-            TextButton(onPressed: _anon, child: Text('Continue anonymously')),
+            const SizedBox(height: 8),
+            const Text('Or continue anonymously for prototyping'),
+            TextButton(onPressed: _anon, child: const Text('Continue anonymously')),
           ],
         ),
       ),
