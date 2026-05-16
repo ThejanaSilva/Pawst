@@ -4,6 +4,7 @@ import '../models/pet.dart';
 import '../models/vaccination.dart';
 import '../models/lost_pet_report.dart';
 import '../models/forum.dart';
+import '../models/event.dart';
 
 class FirestoreService {
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -107,5 +108,33 @@ class FirestoreService {
     await _db.collection('forum_comments').add(comment.toMap()
       ..remove('id')
       ..['createdAt'] = FieldValue.serverTimestamp());
+  }
+
+  // --- Events ---
+  static Stream<List<Event>> streamEvents() {
+    return _db
+        .collection('events')
+        .where('eventDate', isGreaterThanOrEqualTo: DateTime.now())
+        .orderBy('eventDate')
+        .snapshots()
+        .map((snap) => snap.docs.map((doc) => Event.fromMap(doc.data(), id: doc.id)).toList());
+  }
+
+  static Future<void> addEvent(Event event) async {
+    await _db.collection('events').add(event.toMap()
+      ..remove('id')
+      ..['createdAt'] = FieldValue.serverTimestamp());
+  }
+
+  static Future<void> toggleRsvp(String eventId, String userId, bool isAttending) async {
+    if (isAttending) {
+      await _db.collection('events').doc(eventId).update({
+        'rsvps': FieldValue.arrayUnion([userId])
+      });
+    } else {
+      await _db.collection('events').doc(eventId).update({
+        'rsvps': FieldValue.arrayRemove([userId])
+      });
+    }
   }
 }

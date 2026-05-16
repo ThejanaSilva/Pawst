@@ -3,6 +3,7 @@ import 'src/screens/auth_screen.dart';
 import 'src/screens/feed_screen.dart';
 import 'src/screens/lost_pets_screen.dart';
 import 'src/screens/forum_screen.dart';
+import 'src/screens/events_screen.dart';
 import 'src/services/auth_service.dart';
 import 'src/services/firebase_service.dart';
 
@@ -30,7 +31,7 @@ class MainHomeScreen extends StatefulWidget {
 
 class _MainHomeScreenState extends State<MainHomeScreen> {
   int _idx = 0;
-  final _screens = [FeedScreen(), LostPetsScreen(), ForumScreen()];
+  final _screens = [FeedScreen(), LostPetsScreen(), ForumScreen(), EventsScreen()];
 
   @override
   Widget build(BuildContext context) {
@@ -38,11 +39,15 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
       body: _screens[_idx],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _idx,
+        type: BottomNavigationBarType.fixed, // Added this since > 3 items requires fixed type to show colors properly
+        selectedItemColor: Colors.teal,
+        unselectedItemColor: Colors.grey,
         onTap: (i) => setState(() => _idx = i),
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Lost Pets'),
           BottomNavigationBarItem(icon: Icon(Icons.forum), label: 'Forum'),
+          BottomNavigationBarItem(icon: Icon(Icons.event), label: 'Events'),
         ],
       ),
     );
