@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import 'post_editor_screen.dart';
 import 'pet_profile_screen.dart';
+import 'chat_screen.dart';
 
 class FeedScreen extends StatelessWidget {
   @override
@@ -65,9 +66,27 @@ class FeedScreen extends StatelessWidget {
                         children: [
                           Text(p.caption, style: TextStyle(fontSize: 16)),
                           SizedBox(height: 6),
-                          Text(
-                            p.createdAt.toLocal().toString(),
-                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                p.createdAt.toLocal().toString().split(' ')[0], // Simplify date
+                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                              ),
+                              if (p.authorId != AuthService.currentUser?.uid)
+                                TextButton.icon(
+                                  icon: Icon(Icons.chat_bubble_outline, size: 16),
+                                  label: Text('Message'),
+                                  onPressed: () async {
+                                    final curUser = AuthService.currentUser;
+                                    if (curUser == null) return;
+                                    final roomId = await FirestoreService.getOrCreateChatRoom(curUser.uid, p.authorId);
+                                    Navigator.push(context, MaterialPageRoute(
+                                      builder: (_) => ChatScreen(roomId: roomId, otherUserId: p.authorId)
+                                    ));
+                                  },
+                                )
+                            ],
                           ),
                         ],
                       ),

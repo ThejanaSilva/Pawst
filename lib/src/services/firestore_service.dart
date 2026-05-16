@@ -5,6 +5,7 @@ import '../models/vaccination.dart';
 import '../models/lost_pet_report.dart';
 import '../models/forum.dart';
 import '../models/event.dart';
+import '../models/chat.dart';
 
 class FirestoreService {
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -136,5 +137,61 @@ class FirestoreService {
         'rsvps': FieldValue.arrayRemove([userId])
       });
     }
+  }
+
+  // --- Messaging ---
+  static Stream<List<ChatRoom>> streamUserChatRooms(String userId) {
+    return _db
+        .collection('chat_rooms')
+        .where('participants', arrayContains: userId)
+        .orderBy('lastMessageTime', descending: true)
+        .snapshots()
+        .map((snap) => snap.docs.map((doc) => ChatRoom.fromFirestore(doc)).toList());
+  }
+
+  static Future<String> getOrCreateChatRoom(String userId1, String userId2) async {
+    final query = await _db
+        .collection('chat_rooms')
+        .where('participants', arrayContains: userId1)
+        .get();
+
+    for (var doc in query.docs) {
+      List<dynamic> participants = doc['participants'] ?? [];
+      if (participants.contains(userId2)) {
+        return doc.id;
+      }
+    }
+
+    // Not found, create new
+    final newRoom = await _db.collection('chat_rooms').add({
+      'participants': [userId1, userId2],
+      'lastMessage': null,
+      'lastMessageTime': FieldValue.serverTimestamp(),
+    });
+    return newRoom.id;
+  }
+
+  static Stream<List<ChatMessage>> streamChatMessages(String roomId) {
+    return _db
+        .collection('chat_rooms')
+        .doc(roomId)
+        .collection('messages')
+        .orderBy('createdAt', descending: true) // To show newest at the bottom usually List is reversed
+        .snapshots()
+        .map((snap) => snap.docs.map((doc) => ChatMessage.fromFirestore(doc)).toList());
+  }
+
+  static Future<void> sendMessage(String roomId, String senderId, String content) async {
+    final msg = {
+      'senderId': senderId,
+      'content': content,
+      'createdAt': FieldValue.serverTimestamp(),
+      'isRead': false,
+    };
+    await _db.collection('chat_rooms').doc(roomId).collection('messages').add(msg);
+    await _db.collection('chat_rooms').doc(roomId).update({
+      'lastMessage': content,
+      'lastMessageTime': FieldValue.serverTimestamp(),
+    });
   }
 }

@@ -4,6 +4,7 @@ import 'src/screens/feed_screen.dart';
 import 'src/screens/lost_pets_screen.dart';
 import 'src/screens/forum_screen.dart';
 import 'src/screens/events_screen.dart';
+import 'src/screens/chat_rooms_screen.dart';
 import 'src/services/auth_service.dart';
 import 'src/services/firebase_service.dart';
 
@@ -31,7 +32,7 @@ class MainHomeScreen extends StatefulWidget {
 
 class _MainHomeScreenState extends State<MainHomeScreen> {
   int _idx = 0;
-  final _screens = [FeedScreen(), LostPetsScreen(), ForumScreen(), EventsScreen()];
+  final _screens = [FeedScreen(), LostPetsScreen(), ForumScreen(), EventsScreen(), ChatRoomsScreen()];
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +49,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Lost Pets'),
           BottomNavigationBarItem(icon: Icon(Icons.forum), label: 'Forum'),
           BottomNavigationBarItem(icon: Icon(Icons.event), label: 'Events'),
+          BottomNavigationBarItem(icon: Icon(Icons.mail), label: 'Chats'),
         ],
       ),
     );
