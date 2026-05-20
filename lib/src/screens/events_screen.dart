@@ -96,7 +96,7 @@ class EventsScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showNewEventDialog(context),
         tooltip: 'Create Event',
-        child: Icon(Icons.add_location_alt),
+        child: const Icon(Icons.add_location_alt),
       ),
     );
   }
