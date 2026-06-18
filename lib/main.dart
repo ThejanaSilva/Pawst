@@ -5,7 +5,7 @@ import 'src/screens/lost_pets_screen.dart';
 import 'src/screens/forum_screen.dart';
 import 'src/screens/events_screen.dart';
 import 'src/screens/chat_rooms_screen.dart';
-import 'src/screens/firestore_test_screen.dart'; // added for connectivity test
+// added for connectivity test
 import 'src/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Added for User type
 import 'src/services/firebase_service.dart';
