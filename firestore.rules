@@ -1,0 +1,12 @@
+// Firestore security rules for development
+// Allows any authenticated user (including anonymous) to read and write all documents.
+// Replace with stricter rules before production.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

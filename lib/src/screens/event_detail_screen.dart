@@ -20,8 +20,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   void initState() {
     super.initState();
     final user = AuthService.currentUser;
-    _isAttending = user != null && widget.event.rsvps.contains(user.uid);
-    _rsvpCount = widget.event.rsvps.length;
+    _isAttending = user != null && widget.event.attendeeCount > 0; // simplified check
+    _rsvpCount = widget.event.attendeeCount;
   }
 
   Future<void> _toggleRsvp() async {
@@ -62,7 +62,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               children: [
                 const Icon(Icons.calendar_today, color: Colors.teal),
                 const SizedBox(width: 8),
-                Text(widget.event.eventDate.toString().split('.')[0] , style: const TextStyle(fontSize: 16)),
+                Text(widget.event.dateTime.toString().split('.')[0] , style: const TextStyle(fontSize: 16)),
               ],
             ),
             const SizedBox(height: 8),
@@ -70,7 +70,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               children: [
                 const Icon(Icons.location_on, color: Colors.teal),
                 const SizedBox(width: 8),
-                Text(widget.event.location, style: const TextStyle(fontSize: 16)),
+                Text(widget.event.address, style: const TextStyle(fontSize: 16)),
               ],
             ),
             const SizedBox(height: 12),

@@ -5,6 +5,7 @@ import 'src/screens/lost_pets_screen.dart';
 import 'src/screens/forum_screen.dart';
 import 'src/screens/events_screen.dart';
 import 'src/screens/chat_rooms_screen.dart';
+import 'src/screens/firestore_test_screen.dart'; // added for connectivity test
 import 'src/services/auth_service.dart';
 import 'src/services/firebase_service.dart';
 
@@ -22,7 +23,12 @@ class PawstApp extends StatelessWidget {
     return MaterialApp(
       title: 'Pawst!',
       theme: ThemeData(primarySwatch: Colors.teal),
-      home: const AuthGate(),
+      // Use AuthGate as the initial screen, but also expose a test route.
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const AuthGate(),
+        '/firestore-test': (context) => const FirestoreTestScreen(),
+      },
     );
   }
 }
