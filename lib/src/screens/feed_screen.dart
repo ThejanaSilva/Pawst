@@ -1,158 +1,446 @@
 import 'package:flutter/material.dart';
-import '../models/pet.dart';
 import '../models/post.dart';
-import '../services/auth_service.dart';
-import '../services/firestore_service.dart';
-import 'post_editor_screen.dart';
-import 'pet_profile_screen.dart';
-import 'chat_screen.dart';
+import '../models/comment.dart';
 
-class FeedScreen extends StatelessWidget {
+class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
+
+  @override
+  State<FeedScreen> createState() => _FeedScreenState();
+}
+
+class _FeedScreenState extends State<FeedScreen> {
+  final List<Post> posts = [
+    Post(
+      id: "post_1",
+      username: "alice",
+      imageUrl: "https://picsum.photos/id/237/800/800",
+      caption: "Charlie enjoyed the park today 🐶",
+      timeAgo: "2h",
+      paws: 124,
+      comments: [
+        Comment(
+          username: "petlover",
+          text: "Such a happy dog! 🐾",
+          replies: [
+            Comment(
+              username: "alice",
+              text: "He loved playing today 😊",
+            ),
+          ],
+        ),
+        Comment(
+          username: "john",
+          text: "Adorable!",
+        ),
+      ],
+    ),
+    Post(
+      id: "post_2",
+      username: "emma",
+      imageUrl: "https://picsum.photos/id/1025/800/800",
+      caption: "Meet my sleepy puppy ❤️",
+      timeAgo: "5h",
+      paws: 88,
+      comments: [
+        Comment(
+          username: "lucy",
+          text: "So cute 😍",
+        ),
+      ],
+    ),
+  ];
+
+  void _showComments(Post post) {
+    final controller = TextEditingController();
+    Comment? replyingTo;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, sheetSetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.85,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 12),
+                    const Text(
+                      "Comments",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Divider(),
+                    Expanded(
+                      child: ListView(
+                        children: post.comments.map((comment) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ListTile(
+                                leading: const CircleAvatar(
+                                  child: Icon(Icons.person),
+                                ),
+                                title: Text(
+                                  comment.username,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Text(comment.text),
+                                trailing: TextButton(
+                                  onPressed: () {
+                                    replyingTo = comment;
+                                    controller.text = "@${comment.username} ";
+                                    sheetSetState(() {});
+                                  },
+                                  child: const Text("Reply"),
+                                ),
+                              ),
+                              if (comment.replies.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 60),
+                                  child: Column(
+                                    children: comment.replies
+                                        .map(
+                                          (reply) => ListTile(
+                                            dense: true,
+                                            leading: const Icon(
+                                              Icons.reply,
+                                              size: 18,
+                                            ),
+                                            title: Text(
+                                              reply.username,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            subtitle: Text(reply.text),
+                                          ),
+                                        )
+                                        .toList(),
+                                  ),
+                                ),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    if (replyingTo != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Replying to @${replyingTo!.username}",
+                            style: const TextStyle(
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ),
+                      ),
+                    const Divider(height: 1),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        children: [
+                          const CircleAvatar(
+                            child: Icon(Icons.person),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextField(
+                              controller: controller,
+                              decoration: const InputDecoration(
+                                hintText: "Add a comment...",
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.send),
+                            onPressed: () {
+                              final text = controller.text.trim();
+
+                              if (text.isEmpty) return;
+
+                              setState(() {
+                                if (replyingTo == null) {
+                                  post.comments.add(
+                                    Comment(
+                                      username: "you",
+                                      text: text,
+                                    ),
+                                  );
+                                } else {
+                                  replyingTo!.replies.add(
+                                    Comment(
+                                      username: "you",
+                                      text: text,
+                                    ),
+                                  );
+                                }
+                              });
+
+                              controller.clear();
+                              replyingTo = null;
+                              sheetSetState(() {});
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  final Map<String, bool> showPawAnimation = {};
+
+  void _pawPost(Post post) {
+    if (!post.isPawed) {
+      setState(() {
+        post.isPawed = true;
+        post.paws++;
+        showPawAnimation[post.id] = true;
+      });
+
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          setState(() {
+            showPawAnimation[post.id] = false;
+          });
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Pawst! Feed'),
-        actions: [
-          IconButton(
-            onPressed: () => _showMyPets(context),
-            icon: const Icon(Icons.pets),
-          ),
-          IconButton(
-            onPressed: () async {
-              await AuthService.signOut();
-            },
-            icon: const Icon(Icons.logout),
-          )
-        ],
+        title: const Text("PAWST"),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const PostEditorScreen()));
-        },
-        child: const Icon(Icons.add_a_photo),
-      ),
-      body: StreamBuilder<List<Post>>(
-        stream: FirestoreService.streamFeed(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return const Center(child: Text('Failed to load feed'));
-          }
-          final posts = snapshot.data ?? [];
-          if (posts.isEmpty) {
-            return const Center(child: Text('No posts yet. Create the first Pawst!'));
-          }
-          return ListView.builder(
-            itemCount: posts.length,
-            itemBuilder: (context, i) {
-              final p = posts[i];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      body: ListView.builder(
+        itemCount: posts.length,
+        itemBuilder: (context, index) {
+          final post = posts[index];
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListTile(
+                leading: const CircleAvatar(
+                  child: Icon(Icons.person),
+                ),
+                title: Text(
+                  post.username,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                trailing: const Icon(Icons.more_vert),
+              ),
+              GestureDetector(
+                onDoubleTap: () {
+                  _pawPost(post);
+                },
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    if (p.mediaUrl.isNotEmpty)
-                      AspectRatio(
-                        aspectRatio: 1,
-                        child: Image.network(p.mediaUrl, fit: BoxFit.cover),
+                    AspectRatio(
+                      aspectRatio: 1,
+                      child: Image.network(
+                        post.imageUrl,
+                        fit: BoxFit.cover,
                       ),
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(p.caption, style: const TextStyle(fontSize: 16)),
-                          const SizedBox(height: 6),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                p.createdAt.toLocal().toString().split(' ')[0], // Simplify date
-                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                              ),
-                              if (p.authorId != AuthService.currentUser?.uid)
-                                TextButton.icon(
-                                  icon: const Icon(Icons.chat_bubble_outline, size: 16),
-                                  label: const Text('Message'),
-                                  onPressed: () async {
-                                    final curUser = AuthService.currentUser;
-                                    if (curUser == null) return;
-                                    final roomId = await FirestoreService.getOrCreateChatRoom(curUser.uid, p.authorId);
-                                    Navigator.push(context, MaterialPageRoute(
-                                      builder: (_) => ChatScreen(roomId: roomId, otherUserId: p.authorId)
-                                    ));
-                                  },
-                                )
-                            ],
-                          ),
-                        ],
+                    ),
+                    AnimatedScale(
+                      scale: showPawAnimation[post.id] == true ? 1.0 : 0.5,
+                      duration: const Duration(milliseconds: 250),
+                      child: AnimatedOpacity(
+                        opacity: showPawAnimation[post.id] == true ? 1 : 0,
+                        duration: const Duration(milliseconds: 250),
+                        child: const Icon(
+                          Icons.pets,
+                          size: 120,
+                          color: Colors.orange,
+                        ),
                       ),
-                    )
+                    ),
                   ],
                 ),
-              );
-            },
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        if (post.isPawed) {
+                          post.isPawed = false;
+                          post.paws--;
+                        } else {
+                          _pawPost(post);
+                        }
+                      });
+                    },
+                    icon: AnimatedScale(
+                      scale: post.isPawed ? 1.15 : 1.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        Icons.pets,
+                        color:
+                            post.isPawed ? Colors.orange : Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => _showComments(post),
+                    icon: const Icon(
+                      Icons.mode_comment_outlined,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            "Share tapped",
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.ios_share_outlined,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        post.isBookmarked = !post.isBookmarked;
+                      });
+                    },
+                    icon: Icon(
+                      post.isBookmarked
+                          ? Icons.bookmark
+                          : Icons.bookmark_border,
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                ),
+                child: Text(
+                  "🐾 ${post.paws} paws",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                ),
+                child: RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      color: Colors.black,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: "${post.username} ",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      TextSpan(
+                        text: post.caption,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              GestureDetector(
+                onTap: () => _showComments(post),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                  ),
+                  child: Text(
+                    "View all ${post.comments.length} comments",
+                    style: const TextStyle(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              ),
+              if (post.comments.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        color: Colors.black,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: "${post.comments.first.username} ",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextSpan(
+                          text: post.comments.first.text,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                ),
+                child: Text(
+                  post.timeAgo,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+            ],
           );
         },
-      ),
-    );
-  }
-
-  void _showMyPets(BuildContext context) {
-    final user = AuthService.currentUser;
-    if (user == null) return;
-
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => Column(
-        children: [
-          ListTile(
-            title: const Text('My Pets', style: TextStyle(fontWeight: FontWeight.bold)),
-            trailing: IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () {
-                // stub for adding pet
-                FirestoreService.addPet(Pet(
-                  id: '',
-                  ownerId: user.uid,
-                  name: 'New Pet ${DateTime.now().second}',
-                  species: 'Dog',
-                  about: 'A good boy',
-                ));
-              },
-            ),
-          ),
-          Expanded(
-            child: StreamBuilder<List<Pet>>(
-              stream: FirestoreService.streamUserPets(user.uid),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                final pets = snapshot.data!;
-                if (pets.isEmpty) return const Center(child: Text('No pets yet. Tap + to add.'));
-                return ListView.builder(
-                  itemCount: pets.length,
-                  itemBuilder: (context, i) {
-                    final pet = pets[i];
-                    return ListTile(
-                      leading: const Icon(Icons.pets),
-                      title: Text(pet.name),
-                      subtitle: Text(pet.species),
-                      onTap: () {
-                        Navigator.pop(ctx); // close bottom sheet
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => PetProfileScreen(pet: pet)));
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-          )
-        ],
       ),
     );
   }
