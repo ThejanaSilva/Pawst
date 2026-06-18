@@ -30,7 +30,7 @@ class FeedScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => PostEditorScreen()));
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const PostEditorScreen()));
         },
         child: const Icon(Icons.add_a_photo),
       ),

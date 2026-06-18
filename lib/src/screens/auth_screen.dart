@@ -30,11 +30,13 @@ class _AuthScreenState extends State<AuthScreen> {
       } else {
         await AuthService.signIn(email, pass);
       }
+      if (!mounted) return;
       _showMessage('Signed in successfully');
     } catch (e) {
+      if (!mounted) return;
       _showMessage('Auth error: ${e.toString()}');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -42,11 +44,13 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() => _isLoading = true);
     try {
       await AuthService.signInAnonymously();
+      if (!mounted) return;
       _showMessage('Signed in anonymously');
     } catch (e) {
+      if (!mounted) return;
       _showMessage('Anonymous auth error: ${e.toString()}');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

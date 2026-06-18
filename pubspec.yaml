@@ -16,7 +16,15 @@ dependencies:
   firebase_storage: ^11.3.0
   provider: ^6.0.5
   image_picker: ^0.8.7+4
-  video_player: ^2.6.1
+  # video_player removed as it is not used in the codebase
+  # video_player: ^2.6.1
+  # New dependencies for Events & Meetups feature
+  # google_maps_flutter removed – replaced by flutter_map (OpenStreetMap)
+  flutter_map: ^7.0.0
+  latlong2: ^0.9.0
+  flutter_typeahead: ^4.3.3
+  intl: ^0.18.0
+  geocoding: ^2.0.5
 
 dev_dependencies:
   flutter_test:

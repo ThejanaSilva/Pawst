@@ -90,7 +90,7 @@ class ForumScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showNewTopicDialog(context),
         tooltip: 'Ask a Question',
-        child: Icon(Icons.edit_document),
+        child: const Icon(Icons.edit_document),
       ),
     );
   }

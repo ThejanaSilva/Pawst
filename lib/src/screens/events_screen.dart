@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart'; // for reverse geocoding
 import '../models/event.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import 'event_detail_screen.dart';
+import 'location_picker_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class EventsScreen extends StatelessWidget {
   const EventsScreen({super.key});
@@ -12,6 +18,8 @@ class EventsScreen extends StatelessWidget {
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     final locCtrl = TextEditingController();
+    GeoPoint? selectedGeoPoint;
+    File? selectedImageFile;
 
     showDialog(
       context: context,
@@ -22,7 +30,55 @@ class EventsScreen extends StatelessWidget {
           children: [
             TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Event Title')),
             TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description'), maxLines: 2),
-            TextField(controller: locCtrl, decoration: const InputDecoration(labelText: 'Location')),
+            // Address input with optional map picker
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: locCtrl,
+                    decoration: const InputDecoration(labelText: 'Address'),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.map),
+                  tooltip: 'Pick on map',
+                  onPressed: () async {
+                    final result = await Navigator.of(context).push<GeoPoint>(
+                      MaterialPageRoute(builder: (_) => const LocationPickerScreen()),
+                    );
+                    if (result != null) {
+                      selectedGeoPoint = result;
+                      // Perform reverse geocoding to obtain a human‑readable address.
+                      try {
+                        final placemarks = await placemarkFromCoordinates(result.latitude, result.longitude);
+                        if (placemarks.isNotEmpty) {
+                          final place = placemarks.first;
+                          final address = '${place.street ?? ''}, ${place.locality ?? ''}, ${place.administrativeArea ?? ''}, ${place.country ?? ''}'.replaceAll(' ,', ',').trim();
+                          locCtrl.text = address;
+                        } else {
+                          // Fallback to coordinates if no placemark found.
+                          locCtrl.text = '${result.latitude.toStringAsFixed(5)}, ${result.longitude.toStringAsFixed(5)}';
+                        }
+                      } catch (e) {
+                        // On error, show coordinates.
+                        locCtrl.text = '${result.latitude.toStringAsFixed(5)}, ${result.longitude.toStringAsFixed(5)}';
+                      }
+                    }
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.photo),
+                  tooltip: 'Add image',
+                  onPressed: () async {
+                    final picker = ImagePicker();
+                    final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
+                    if (picked != null) {
+                      selectedImageFile = File(picked.path);
+                    }
+                  },
+                ),
+              ],
+            ),
           ],
         ),
         actions: [
@@ -33,17 +89,25 @@ class EventsScreen extends StatelessWidget {
               final user = AuthService.currentUser;
               if (user == null) return;
 
+              String? imageUrl;
+              if (selectedImageFile != null) {
+                final storageRef = FirebaseStorage.instance.ref()
+                    .child('event_images')
+                    .child('${user.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg');
+                await storageRef.putFile(selectedImageFile!);
+                imageUrl = await storageRef.getDownloadURL();
+              }
               await FirestoreService.addEvent(
                 Event(
                   id: '',
                   organizerId: user.uid,
                   title: titleCtrl.text.trim(),
                   description: descCtrl.text.trim(),
-                  location: locCtrl.text.trim(),
-                  // Default event date 1 day from now
-                  eventDate: DateTime.now().add(const Duration(days: 1)),
-                  createdAt: DateTime.now(),
-                )
+                  address: locCtrl.text.trim(),
+                  location: selectedGeoPoint ?? const GeoPoint(0, 0),
+                  dateTime: DateTime.now().add(const Duration(days: 1)),
+                  imageUrl: imageUrl,
+                ),
               );
               Navigator.pop(ctx);
             },
@@ -78,10 +142,10 @@ class EventsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 4),
-                      Text('📅 ${event.eventDate.toString().split(' ')[0]}'),
-                      Text('📍 ${event.location}'),
+                      Text('📅 ${event.dateTime.toString().split(' ')[0]}'),
+                      Text('📍 ${event.address}'),
                       const SizedBox(height: 4),
-                      Text('${event.rsvps.length} attending', style: const TextStyle(color: Colors.teal, fontWeight: FontWeight.bold)),
+                      Text('${event.attendeeCount} attending', style: const TextStyle(color: Colors.teal, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   onTap: () {
@@ -96,7 +160,7 @@ class EventsScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showNewEventDialog(context),
         tooltip: 'Create Event',
-        child: Icon(Icons.add_location_alt),
+        child: const Icon(Icons.add_location_alt),
       ),
     );
   }

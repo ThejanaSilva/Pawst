@@ -113,12 +113,13 @@ class FirestoreService {
 
   // --- Events ---
   static Stream<List<Event>> streamEvents() {
+    // Use the 'dateTime' field for filtering upcoming events.
     return _db
         .collection('events')
-        .where('eventDate', isGreaterThanOrEqualTo: DateTime.now())
-        .orderBy('eventDate')
+        .where('dateTime', isGreaterThanOrEqualTo: DateTime.now())
+        .orderBy('dateTime')
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => Event.fromMap(doc.data(), id: doc.id)).toList());
+        .map((snap) => snap.docs.map((doc) => Event.fromMap(doc.data(), doc.id)).toList());
   }
 
   static Future<void> addEvent(Event event) async {
@@ -130,11 +131,13 @@ class FirestoreService {
   static Future<void> toggleRsvp(String eventId, String userId, bool isAttending) async {
     if (isAttending) {
       await _db.collection('events').doc(eventId).update({
-        'rsvps': FieldValue.arrayUnion([userId])
+        'rsvps': FieldValue.arrayUnion([userId]),
+        'attendeeCount': FieldValue.increment(1),
       });
     } else {
       await _db.collection('events').doc(eventId).update({
-        'rsvps': FieldValue.arrayRemove([userId])
+        'rsvps': FieldValue.arrayRemove([userId]),
+        'attendeeCount': FieldValue.increment(-1),
       });
     }
   }
