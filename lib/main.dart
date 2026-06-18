@@ -11,7 +11,7 @@ import 'src/services/firebase_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FirebaseService.init();
-  runApp(PawstApp());
+  runApp(const PawstApp());
 }
 
 class PawstApp extends StatelessWidget {
@@ -22,7 +22,7 @@ class PawstApp extends StatelessWidget {
     return MaterialApp(
       title: 'Pawst!',
       theme: ThemeData(primarySwatch: Colors.teal),
-      home: AuthGate(),
+      home: const AuthGate(),
     );
   }
 }
@@ -36,7 +36,7 @@ class MainHomeScreen extends StatefulWidget {
 
 class _MainHomeScreenState extends State<MainHomeScreen> {
   int _idx = 0;
-  final _screens = [FeedScreen(), LostPetsScreen(), ForumScreen(), EventsScreen(), ChatRoomsScreen()];
+  final _screens = [const FeedScreen(), const LostPetsScreen(), const ForumScreen(), const EventsScreen(), const ChatRoomsScreen()];
 
   @override
   Widget build(BuildContext context) {
@@ -72,9 +72,9 @@ class AuthGate extends StatelessWidget {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
         if (snapshot.data != null) {
-          return MainHomeScreen(); // Replaced FeedScreen directly with MainHomeScreen
+          return const MainHomeScreen(); // Replaced FeedScreen directly with MainHomeScreen
         }
-        return AuthScreen();
+        return const AuthScreen();
       },
     );
   }

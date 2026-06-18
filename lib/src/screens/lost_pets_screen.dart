@@ -67,7 +67,7 @@ class LostPetsScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => ReportLostPetScreen()));
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportLostPetScreen()));
         },
         icon: const Icon(Icons.campaign),
         backgroundColor: Colors.redAccent,
