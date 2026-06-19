@@ -8,11 +8,17 @@ class AuthService {
   static Stream<User?> authStateChanges() => _auth.authStateChanges();
 
   static Future<UserCredential> signUp(String email, String password) async {
-    return await _auth.createUserWithEmailAndPassword(email: email, password: password);
+    return await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
   }
 
   static Future<UserCredential> signIn(String email, String password) async {
-    return await _auth.signInWithEmailAndPassword(email: email, password: password);
+    return await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
   }
 
   static Future<UserCredential> signInAnonymously() async {
