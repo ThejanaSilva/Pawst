@@ -74,7 +74,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     const LostPetsScreen(),
     const ForumScreen(),
     const EventsScreen(),
-    PetProfileScreen(),
+    const PetProfileScreen(),
   ];
 
   @override

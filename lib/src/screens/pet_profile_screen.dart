@@ -272,7 +272,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                   const SizedBox(height: 12),
                   isEditing
                       ? DropdownButtonFormField<String>(
-                          value: selectedGender,
+                          initialValue: selectedGender,
                           decoration: const InputDecoration(
                             labelText: "Gender",
                           ),
