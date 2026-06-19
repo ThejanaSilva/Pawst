@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/pet.dart';
-import '../models/vaccination.dart';
 import '../models/appointment.dart';
 import '../models/health_record.dart';
 
@@ -14,8 +14,9 @@ class PetProfileScreen extends StatefulWidget {
 
 class _PetProfileScreenState extends State<PetProfileScreen> {
   bool isEditing = false;
+  bool isLoading = true;
 
-  late Pet pet;
+  Pet? pet;
 
   late TextEditingController nameController;
   late TextEditingController breedController;
@@ -49,65 +50,49 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
   @override
   void initState() {
     super.initState();
+    loadPet();
+  }
 
-    pet = Pet(
-      id: "pet_001",
-      name: "Charlie",
-      breed: "Golden Retriever",
-      gender: "Male",
-      bio: "Friendly, energetic and loves playing fetch.",
-      imageUrl: "https://picsum.photos/id/237/600/600",
-      weightKg: 28.5,
-      ageYears: 2,
-      friendlinessLevel: 5,
-      goodWithDogs: true,
-      goodWithCats: true,
-      goodWithChildren: true,
-      vaccinationPdfName: "charlie_vaccination_card.pdf",
-      vaccinations: [
-        Vaccination(
-          id: "vac_1",
-          name: "Rabies",
-          date: DateTime(2025, 2, 15),
-          completed: true,
-        ),
-        Vaccination(
-          id: "vac_2",
-          name: "DHPP",
-          date: DateTime(2025, 3, 10),
-          completed: true,
-        ),
-      ],
-      appointments: [
-        Appointment(
-          title: "Annual Checkup",
-          date: DateTime(2026, 7, 12),
-          clinic: "Happy Paws Veterinary Clinic",
-          notes: "General health review",
-        ),
-      ],
-      healthRecords: [
-        HealthRecord(
-          title: "Weight",
-          value: "28.5kg",
-          date: DateTime(2026, 1, 1),
-        ),
-      ],
-    );
+  Future<void> loadPet() async {
+    const String petId = "pet_001";
 
-    nameController = TextEditingController(text: pet.name);
-    breedController = TextEditingController(text: pet.breed);
-    bioController = TextEditingController(text: pet.bio);
-    ageController = TextEditingController(text: pet.ageYears.toString());
-    weightController = TextEditingController(text: pet.weightKg.toString());
+    try {
+      final doc =
+          await FirebaseFirestore.instance.collection("pets").doc(petId).get();
 
-    selectedGender = pet.gender;
+      if (!doc.exists) {
+        debugPrint("Pet document not found: $petId");
 
-    goodWithDogs = pet.goodWithDogs;
-    goodWithCats = pet.goodWithCats;
-    goodWithChildren = pet.goodWithChildren;
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
 
-    friendlinessLevel = pet.friendlinessLevel.toDouble();
+      pet = Pet.fromMap(doc.data()!);
+
+      nameController = TextEditingController(text: pet!.name);
+      breedController = TextEditingController(text: pet!.breed);
+      bioController = TextEditingController(text: pet!.bio);
+      ageController = TextEditingController(text: pet!.ageYears.toString());
+      weightController = TextEditingController(text: pet!.weightKg.toString());
+
+      selectedGender = pet!.gender;
+      goodWithDogs = pet!.goodWithDogs;
+      goodWithCats = pet!.goodWithCats;
+      goodWithChildren = pet!.goodWithChildren;
+      friendlinessLevel = pet!.friendlinessLevel.toDouble();
+    } catch (e) {
+      debugPrint("Error loading pet: $e");
+      
+    }
+
+
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   String getFriendlinessText(int level) {
@@ -128,22 +113,30 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
   }
 
   void _saveProfile() {
-    setState(() {
-      pet = pet.copyWith(
-        name: nameController.text,
-        breed: breedController.text,
-        gender: selectedGender,
-        bio: bioController.text,
-        ageYears: int.tryParse(ageController.text) ?? pet.ageYears,
-        weightKg: double.tryParse(weightController.text) ?? pet.weightKg,
-        friendlinessLevel: friendlinessLevel.round(),
-        goodWithDogs: goodWithDogs,
-        goodWithCats: goodWithCats,
-        goodWithChildren: goodWithChildren,
-      );
+    if (pet == null) return;
 
+    final updated = pet!.copyWith(
+      name: nameController.text,
+      breed: breedController.text,
+      gender: selectedGender,
+      bio: bioController.text,
+      ageYears: int.tryParse(ageController.text) ?? pet!.ageYears,
+      weightKg: double.tryParse(weightController.text) ?? pet!.weightKg,
+      friendlinessLevel: friendlinessLevel.round(),
+      goodWithDogs: goodWithDogs,
+      goodWithCats: goodWithCats,
+      goodWithChildren: goodWithChildren,
+    );
+
+    setState(() {
+      pet = updated;
       isEditing = false;
     });
+
+    FirebaseFirestore.instance
+        .collection("pets")
+        .doc(pet!.id)
+        .update(updated.toMap());
   }
 
   void _addPost() {
@@ -152,7 +145,9 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("New Post"),
+        title: const Text(
+          "New Post",
+        ),
         content: TextField(
           controller: captionController,
           decoration: const InputDecoration(
@@ -163,15 +158,19 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
           ElevatedButton(
             onPressed: () {
               setState(() {
-                posts.add({
-                  "image": "https://picsum.photos/600?random=${posts.length}",
-                  "caption": captionController.text,
-                });
+                posts.add(
+                  {
+                    "image": "https://picsum.photos/600?random=${posts.length}",
+                    "caption": captionController.text,
+                  },
+                );
               });
 
               Navigator.pop(context);
             },
-            child: const Text("Add"),
+            child: const Text(
+              "Add",
+            ),
           ),
         ],
       ),
@@ -184,7 +183,9 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(post["caption"] ?? ""),
+        title: Text(
+          post["caption"] ?? "",
+        ),
         content: Image.network(
           post["image"]!,
         ),
@@ -208,7 +209,9 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text("Close"),
+            child: const Text(
+              "Close",
+            ),
           ),
         ],
       ),
@@ -216,13 +219,21 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
   }
 
   Widget buildProfileTab() {
+    if (isLoading || pet == null) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           CircleAvatar(
             radius: 60,
-            backgroundImage: NetworkImage(pet.imageUrl),
+            backgroundImage: NetworkImage(
+              pet!.imageUrl,
+            ),
           ),
           const SizedBox(height: 20),
           isEditing
@@ -233,7 +244,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                   ),
                 )
               : Text(
-                  pet.name,
+                  pet!.name,
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -248,7 +259,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                   ),
                 )
               : Text(
-                  pet.breed,
+                  pet!.breed,
                   style: const TextStyle(
                     color: Colors.grey,
                   ),
@@ -294,7 +305,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                         )
                       : _infoRow(
                           "Gender",
-                          pet.gender,
+                          pet!.gender,
                         ),
                   isEditing
                       ? TextField(
@@ -306,7 +317,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                         )
                       : _infoRow(
                           "Age",
-                          "${pet.ageYears} Years",
+                          "${pet!.ageYears} Years",
                         ),
                   isEditing
                       ? TextField(
@@ -318,7 +329,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                         )
                       : _infoRow(
                           "Weight",
-                          "${pet.weightKg} kg",
+                          "${pet!.weightKg} kg",
                         ),
                   const SizedBox(height: 12),
                   isEditing
@@ -331,7 +342,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                         )
                       : _infoRow(
                           "Bio",
-                          pet.bio,
+                          pet!.bio,
                         ),
                 ],
               ),
@@ -427,6 +438,41 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
     );
   }
 
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(value),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _traitRow(String label, bool value) {
+    return Row(
+      children: [
+        Expanded(child: Text(label)),
+        Switch(
+          value: value,
+          onChanged: null,
+        ),
+      ],
+    );
+  }
+
   Widget buildFeedTab() {
     return GridView.builder(
       padding: const EdgeInsets.all(8),
@@ -439,13 +485,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
       itemBuilder: (_, index) {
         if (index == 0) {
           return InkWell(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Create New Post"),
-                ),
-              );
-            },
+            onTap: _addPost,
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
@@ -466,9 +506,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
         final post = posts[index - 1];
 
         return GestureDetector(
-          onTap: () {
-            _showPostDialog(post);
-          },
+          onTap: () => _showPostDialog(post),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.network(
@@ -482,6 +520,12 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
   }
 
   Widget buildHealthTab() {
+    if (isLoading || pet == null) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -506,22 +550,23 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  if (pet.appointments.isNotEmpty)
+                  if (pet!.appointments.isNotEmpty)
                     Column(
                       children: [
                         Text(
-                          pet.appointments.first.title,
+                          pet!.appointments.first.title,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text(pet.appointments.first.clinic),
+                        Text(pet!.appointments.first.clinic),
                         Text(
-                          "${pet.appointments.first.date.day}/${pet.appointments.first.date.month}/${pet.appointments.first.date.year}",
+                          "${pet!.appointments.first.date.day}/${pet!.appointments.first.date.month}/${pet!.appointments.first.date.year}",
                         ),
                       ],
-                    ),
-                 
+                    )
+                  else
+                    const Text("No upcoming visits"),
                 ],
               ),
             ),
@@ -553,7 +598,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  ...pet.appointments.asMap().entries.map(
+                  ...pet!.appointments.asMap().entries.map(
                     (entry) {
                       final index = entry.key;
                       final appointment = entry.value;
@@ -561,17 +606,12 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                       return ListTile(
                         leading: const Icon(Icons.local_hospital),
                         title: Text(appointment.title),
-                        subtitle: Text(
-                          appointment.clinic,
-                        ),
+                        subtitle: Text(appointment.clinic),
                         trailing: IconButton(
-                          icon: const Icon(
-                            Icons.delete,
-                            color: Colors.red,
-                          ),
+                          icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () {
                             setState(() {
-                              pet.appointments.removeAt(index);
+                              pet!.appointments.removeAt(index);
                             });
                           },
                         ),
@@ -609,7 +649,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  ...pet.healthRecords.asMap().entries.map(
+                  ...pet!.healthRecords.asMap().entries.map(
                     (entry) {
                       final index = entry.key;
                       final record = entry.value;
@@ -619,13 +659,10 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                         title: Text(record.title),
                         subtitle: Text(record.value),
                         trailing: IconButton(
-                          icon: const Icon(
-                            Icons.delete,
-                            color: Colors.red,
-                          ),
+                          icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () {
                             setState(() {
-                              pet.healthRecords.removeAt(index);
+                              pet!.healthRecords.removeAt(index);
                             });
                           },
                         ),
@@ -654,15 +691,11 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
           children: [
             TextField(
               controller: titleController,
-              decoration: const InputDecoration(
-                labelText: "Visit Title",
-              ),
+              decoration: const InputDecoration(labelText: "Visit Title"),
             ),
             TextField(
               controller: clinicController,
-              decoration: const InputDecoration(
-                labelText: "Clinic Name",
-              ),
+              decoration: const InputDecoration(labelText: "Clinic Name"),
             ),
           ],
         ),
@@ -674,7 +707,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
           ElevatedButton(
             onPressed: () {
               setState(() {
-                pet.appointments.add(
+                pet!.appointments.add(
                   Appointment(
                     title: titleController.text,
                     clinic: clinicController.text,
@@ -706,15 +739,11 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
           children: [
             TextField(
               controller: titleController,
-              decoration: const InputDecoration(
-                labelText: "Record Name",
-              ),
+              decoration: const InputDecoration(labelText: "Record Name"),
             ),
             TextField(
               controller: valueController,
-              decoration: const InputDecoration(
-                labelText: "Value",
-              ),
+              decoration: const InputDecoration(labelText: "Value"),
             ),
           ],
         ),
@@ -726,7 +755,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
           ElevatedButton(
             onPressed: () {
               setState(() {
-                pet.healthRecords.add(
+                pet!.healthRecords.add(
                   HealthRecord(
                     title: titleController.text,
                     value: valueController.text,
@@ -744,148 +773,47 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
     );
   }
 
-  void _showAddVaccinationDialog() {
-    final nameController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Add Vaccination"),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: "Vaccination Name",
-          ),
-        ),
-        actions: [
-          TextButton(
-            child: const Text("Cancel"),
-            onPressed: () => Navigator.pop(context),
-          ),
-          ElevatedButton(
-            child: const Text("Add"),
-            onPressed: () {
-              setState(() {
-                pet.vaccinations.add(
-                  Vaccination(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    name: nameController.text,
-                    date: DateTime.now(),
-                    completed: false,
-                  ),
-                );
-              });
-
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  static Widget _infoRow(
-    String title,
-    String value,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(value),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static Widget _traitRow(
-    String title,
-    bool value,
-  ) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(
-        value ? Icons.check_circle : Icons.cancel,
-        color: value ? Colors.green : Colors.red,
-      ),
-      title: Text(title),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    if (isLoading || pet == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return DefaultTabController(
       length: 3,
-      child: Builder(
-        builder: (context) {
-          final tabIndex = DefaultTabController.of(context).index;
-
-          return Scaffold(
-            backgroundColor: Colors.white,
-            appBar: AppBar(
-              title: Text(pet.name),
-              actions: [
-                IconButton(
-                  icon: Icon(
-                    isEditing ? Icons.check : Icons.edit,
-                  ),
-                  onPressed: () {
-                    if (isEditing) {
-                      setState(() {
-                        pet = pet.copyWith(
-                          name: nameController.text,
-                          breed: breedController.text,
-                          bio: bioController.text,
-                          gender: selectedGender,
-                          ageYears:
-                              int.tryParse(ageController.text) ?? pet.ageYears,
-                          weightKg: double.tryParse(weightController.text) ??
-                              pet.weightKg,
-                          friendlinessLevel: friendlinessLevel.round(),
-                          goodWithDogs: goodWithDogs,
-                          goodWithCats: goodWithCats,
-                          goodWithChildren: goodWithChildren,
-                        );
-
-                        isEditing = false;
-                      });
-                    } else {
-                      setState(() {
-                        isEditing = true;
-                      });
-                    }
-                  },
-                ),
-              ],
-              bottom: const TabBar(
-                tabs: [
-                  Tab(text: "Profile"),
-                  Tab(text: "Feed"),
-                  Tab(text: "Health"),
-                ],
-              ),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          title: Text(pet!.name),
+          actions: [
+            IconButton(
+              icon: Icon(isEditing ? Icons.check : Icons.edit),
+              onPressed: () {
+                if (isEditing) {
+                  _saveProfile();
+                } else {
+                  setState(() => isEditing = true);
+                }
+              },
             ),
-            body: TabBarView(
-              children: [
-                buildProfileTab(),
-                buildFeedTab(),
-                buildHealthTab(),
-              ],
-            ),
-            
-          );
-        },
+          ],
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: "Profile"),
+              Tab(text: "Feed"),
+              Tab(text: "Health"),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            buildProfileTab(),
+            buildFeedTab(),
+            buildHealthTab(),
+          ],
+        ),
       ),
     );
   }

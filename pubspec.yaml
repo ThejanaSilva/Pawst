@@ -10,10 +10,10 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
-  firebase_core: ^2.14.0
-  firebase_auth: ^4.6.0
-  cloud_firestore: ^4.9.0
-  firebase_storage: ^11.3.0
+  firebase_core: ^2.32.0
+  firebase_auth: ^4.16.0
+  cloud_firestore: ^4.17.5
+  firebase_storage: ^11.6.5
   provider: ^6.0.5
   image_picker: ^0.8.7+4
   # video_player removed as it is not used in the codebase
@@ -34,4 +34,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/
+    - Pawst/assets/

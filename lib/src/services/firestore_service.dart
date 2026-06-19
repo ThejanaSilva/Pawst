@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../models/post.dart';
 import '../models/pet.dart';
 import '../models/vaccination.dart';
@@ -10,13 +11,22 @@ import '../models/chat.dart';
 class FirestoreService {
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  // ----------------------------
+  // 📸 FEED / POSTS
+  // ----------------------------
+
   static Stream<List<Post>> streamFeed({int limit = 50}) {
     return _db
         .collection('posts')
         .orderBy('createdAt', descending: true)
         .limit(limit)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => Post.fromMap(doc.data(), id: doc.id)).toList());
+        .map((snap) {
+      return snap.docs.map((doc) {
+        final data = doc.data();
+        return Post.fromMap(data, id: doc.id);
+      }).toList();
+    });
   }
 
   static Future<void> createPost({
@@ -32,66 +42,125 @@ class FirestoreService {
     });
   }
 
-  // --- Pets ---
+  // ----------------------------
+  // 🐶 PETS
+  // ----------------------------
+
   static Stream<List<Pet>> streamUserPets(String userId) {
     return _db
         .collection('pets')
         .where('ownerId', isEqualTo: userId)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => Pet.fromMap(doc.data()..['id'] = doc.id)).toList());
+        .map((snap) {
+      return snap.docs.map((doc) {
+        final data = doc.data();
+        return Pet.fromMap({...data, 'id': doc.id});
+      }).toList();
+    });
   }
 
   static Future<void> addPet(Pet pet) async {
-    await _db.collection('pets').add(pet.toMap()..remove('id'));
+    final data = pet.toMap();
+    data.remove('id');
+
+    await _db.collection('pets').add(data);
   }
 
-  // --- Vaccinations ---
-  static Stream<List<Vaccination>> streamPetVaccinations(String petId, {bool onlyPublic = false}) {
-    var query = _db.collection('vaccinations').where('petId', isEqualTo: petId);
+  static Future<void> updatePet(Pet pet) async {
+    final data = pet.toMap();
+    data.remove('id');
+
+    await _db.collection('pets').doc(pet.id).update(data);
+  }
+
+  // ----------------------------
+  // 💉 VACCINATIONS
+  // ----------------------------
+
+  static Stream<List<Vaccination>> streamPetVaccinations(
+    String petId, {
+    bool onlyPublic = false,
+  }) {
+    Query query =
+        _db.collection('vaccinations').where('petId', isEqualTo: petId);
+
     if (onlyPublic) {
       query = query.where('isPublic', isEqualTo: true);
     }
+
     return query.snapshots().map((snap) {
-      return snap.docs.map((doc) => Vaccination.fromMap(doc.data(), id: doc.id)).toList();
+      return snap.docs.map((doc) {
+        return Vaccination.fromMap(doc.data() as Map<String, dynamic>,
+            id: doc.id);
+      }).toList();
     });
   }
 
   static Future<void> addVaccination(Vaccination vac) async {
-    await _db.collection('vaccinations').add(vac.toMap()..remove('id'));
+    final data = vac.toMap();
+    data.remove('id');
+
+    await _db.collection('vaccinations').add(data);
   }
 
-  // --- Lost Pets ---
-  static Stream<List<LostPetReport>> streamLostPets({bool excludeFound = true}) {
-    var query = _db.collection('lost_pets').orderBy('createdAt', descending: true);
+  // ----------------------------
+  // 🐾 LOST PETS
+  // ----------------------------
+
+  static Stream<List<LostPetReport>> streamLostPets({
+    bool excludeFound = true,
+  }) {
+    Query query =
+        _db.collection('lost_pets').orderBy('createdAt', descending: true);
+
     if (excludeFound) {
       query = query.where('isFound', isEqualTo: false);
     }
+
     return query.snapshots().map((snap) {
-      return snap.docs.map((doc) => LostPetReport.fromMap(doc.data(), id: doc.id)).toList();
+      return snap.docs.map((doc) {
+        return LostPetReport.fromMap(doc.data() as Map<String, dynamic>,
+            id: doc.id);
+      }).toList();
     });
   }
 
   static Future<void> addLostPetReport(LostPetReport report) async {
-    await _db.collection('lost_pets').add(report.toMap()
-      ..remove('id')
-      ..['createdAt'] = FieldValue.serverTimestamp());
+    final data = report.toMap();
+    data.remove('id');
+    data['createdAt'] = FieldValue.serverTimestamp();
+
+    await _db.collection('lost_pets').add(data);
   }
 
   static Future<void> markLostPetAsFound(String reportId) async {
-    await _db.collection('lost_pets').doc(reportId).update({'isFound': true});
+    await _db.collection('lost_pets').doc(reportId).update({
+      'isFound': true,
+    });
   }
 
-  // --- Forum ---
+  // ----------------------------
+  // 💬 FORUM
+  // ----------------------------
+
   static Stream<List<ForumTopic>> streamForumTopics() {
-    return _db.collection('forum_topics').orderBy('createdAt', descending: true).snapshots().map((snap) {
-      return snap.docs.map((doc) => ForumTopic.fromMap(doc.data(), id: doc.id)).toList();
+    return _db
+        .collection('forum_topics')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snap) {
+      return snap.docs.map((doc) {
+        return ForumTopic.fromMap(doc.data(), id: doc.id);
+      }).toList();
     });
   }
 
   static Future<void> addForumTopic(ForumTopic topic) async {
-    await _db.collection('forum_topics').add(topic.toMap()
-      ..remove('id')
-      ..['createdAt'] = FieldValue.serverTimestamp());
+    final data = topic.toMap();
+    data.remove('id');
+    data['createdAt'] = FieldValue.serverTimestamp();
+
+    await _db.collection('forum_topics').add(data);
   }
 
   static Stream<List<ForumComment>> streamTopicComments(String topicId) {
@@ -101,73 +170,102 @@ class FirestoreService {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snap) {
-      return snap.docs.map((doc) => ForumComment.fromMap(doc.data(), id: doc.id)).toList();
+      return snap.docs.map((doc) {
+        return ForumComment.fromMap(doc.data(), id: doc.id);
+      }).toList();
     });
   }
 
   static Future<void> addForumComment(ForumComment comment) async {
-    await _db.collection('forum_comments').add(comment.toMap()
-      ..remove('id')
-      ..['createdAt'] = FieldValue.serverTimestamp());
+    final data = comment.toMap();
+    data.remove('id');
+    data['createdAt'] = FieldValue.serverTimestamp();
+
+    await _db.collection('forum_comments').add(data);
   }
 
-  // --- Events ---
+  // ----------------------------
+  // 🎉 EVENTS
+  // ----------------------------
+
   static Stream<List<Event>> streamEvents() {
     return _db
         .collection('events')
         .where('eventDate', isGreaterThanOrEqualTo: DateTime.now())
         .orderBy('eventDate')
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => Event.fromMap(doc.data(), id: doc.id)).toList());
+        .map((snap) {
+      return snap.docs.map((doc) {
+        return Event.fromMap(doc.data(), id: doc.id);
+      }).toList();
+    });
   }
 
   static Future<void> addEvent(Event event) async {
-    await _db.collection('events').add(event.toMap()
-      ..remove('id')
-      ..['createdAt'] = FieldValue.serverTimestamp());
+    final data = event.toMap();
+    data.remove('id');
+    data['createdAt'] = FieldValue.serverTimestamp();
+
+    await _db.collection('events').add(data);
   }
 
-  static Future<void> toggleRsvp(String eventId, String userId, bool isAttending) async {
+  static Future<void> toggleRsvp(
+    String eventId,
+    String userId,
+    bool isAttending,
+  ) async {
+    final ref = _db.collection('events').doc(eventId);
+
     if (isAttending) {
-      await _db.collection('events').doc(eventId).update({
-        'rsvps': FieldValue.arrayUnion([userId])
+      await ref.update({
+        'rsvps': FieldValue.arrayUnion([userId]),
       });
     } else {
-      await _db.collection('events').doc(eventId).update({
-        'rsvps': FieldValue.arrayRemove([userId])
+      await ref.update({
+        'rsvps': FieldValue.arrayRemove([userId]),
       });
     }
   }
 
-  // --- Messaging ---
+  // ----------------------------
+  // 💬 CHAT SYSTEM
+  // ----------------------------
+
   static Stream<List<ChatRoom>> streamUserChatRooms(String userId) {
     return _db
         .collection('chat_rooms')
         .where('participants', arrayContains: userId)
         .orderBy('lastMessageTime', descending: true)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => ChatRoom.fromFirestore(doc)).toList());
+        .map((snap) {
+      return snap.docs.map((doc) {
+        return ChatRoom.fromFirestore(doc);
+      }).toList();
+    });
   }
 
-  static Future<String> getOrCreateChatRoom(String userId1, String userId2) async {
+  static Future<String> getOrCreateChatRoom(
+    String userId1,
+    String userId2,
+  ) async {
     final query = await _db
         .collection('chat_rooms')
         .where('participants', arrayContains: userId1)
         .get();
 
     for (var doc in query.docs) {
-      List<dynamic> participants = doc['participants'] ?? [];
+      final participants = List<String>.from(doc['participants'] ?? []);
       if (participants.contains(userId2)) {
         return doc.id;
       }
     }
 
-    // Not found, create new
     final newRoom = await _db.collection('chat_rooms').add({
       'participants': [userId1, userId2],
       'lastMessage': null,
       'lastMessageTime': FieldValue.serverTimestamp(),
     });
+
     return newRoom.id;
   }
 
@@ -176,20 +274,30 @@ class FirestoreService {
         .collection('chat_rooms')
         .doc(roomId)
         .collection('messages')
-        .orderBy('createdAt', descending: true) // To show newest at the bottom usually List is reversed
+        .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => ChatMessage.fromFirestore(doc)).toList());
+        .map((snap) {
+      return snap.docs.map((doc) {
+        return ChatMessage.fromFirestore(doc);
+      }).toList();
+    });
   }
 
-  static Future<void> sendMessage(String roomId, String senderId, String content) async {
-    final msg = {
+  static Future<void> sendMessage(
+    String roomId,
+    String senderId,
+    String content,
+  ) async {
+    final roomRef = _db.collection('chat_rooms').doc(roomId);
+
+    await roomRef.collection('messages').add({
       'senderId': senderId,
       'content': content,
       'createdAt': FieldValue.serverTimestamp(),
       'isRead': false,
-    };
-    await _db.collection('chat_rooms').doc(roomId).collection('messages').add(msg);
-    await _db.collection('chat_rooms').doc(roomId).update({
+    });
+
+    await roomRef.update({
       'lastMessage': content,
       'lastMessageTime': FieldValue.serverTimestamp(),
     });
