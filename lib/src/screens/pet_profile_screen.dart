@@ -55,28 +55,29 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
 
   Future<void> loadPet() async {
     const String petId = "pet_001";
-
     try {
+      // Fetch pet document from Firestore
       final doc =
-          await FirebaseFirestore.instance.collection("pets").doc(petId).get();
+          await FirebaseFirestore.instance.collection('pets').doc(petId).get();
 
-      if (!doc.exists) {
-        debugPrint("Pet document not found: $petId");
-
-        setState(() {
-          isLoading = false;
-        });
-        return;
+      // Assuming Pet has a fromDocument factory constructor
+      // Convert Firestore document to Pet model using fromMap
+      final data = doc.data() as Map<String, dynamic>?;
+      if (data != null) {
+        pet = Pet.fromMap(data);
+      } else {
+        debugPrint('Pet document data is null');
+        pet = null;
       }
 
-      pet = Pet.fromMap(doc.data()!);
-
+      // Initialise controllers with pet data
       nameController = TextEditingController(text: pet!.name);
       breedController = TextEditingController(text: pet!.breed);
       bioController = TextEditingController(text: pet!.bio);
       ageController = TextEditingController(text: pet!.ageYears.toString());
       weightController = TextEditingController(text: pet!.weightKg.toString());
 
+      // Initialise other fields
       selectedGender = pet!.gender;
       goodWithDogs = pet!.goodWithDogs;
       goodWithCats = pet!.goodWithCats;
@@ -84,9 +85,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
       friendlinessLevel = pet!.friendlinessLevel.toDouble();
     } catch (e) {
       debugPrint("Error loading pet: $e");
-      
     }
-
 
     if (mounted) {
       setState(() {
@@ -458,18 +457,6 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _traitRow(String label, bool value) {
-    return Row(
-      children: [
-        Expanded(child: Text(label)),
-        Switch(
-          value: value,
-          onChanged: null,
-        ),
-      ],
     );
   }
 
