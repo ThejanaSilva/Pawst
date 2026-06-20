@@ -15,7 +15,7 @@ class ForumScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Ask the Community'),
+        title: const Text('Change text for git commit check'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
