@@ -1,8 +1,18 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../firebase_options.dart';
 
 import '../models/forum.dart';
 import '../models/event.dart';
 import '../models/lost_pet_report.dart';
+
+class FirebaseService {
+  static Future<void> init() async {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+}
 
 class FirestoreService {
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
