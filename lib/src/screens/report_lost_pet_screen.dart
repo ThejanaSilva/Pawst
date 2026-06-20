@@ -1,9 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
-import '../services/storage_service.dart';
+import '../services/cloudinary_service.dart';
 import '../models/lost_pet_report.dart';
 
 class ReportLostPetScreen extends StatefulWidget {
@@ -33,48 +32,68 @@ class _ReportLostPetScreenState extends State<ReportLostPetScreen> {
     }
   }
 
-  Future<void> _submit() async {
-    if (_nameCtrl.text.trim().isEmpty || _locationCtrl.text.trim().isEmpty || _contactCtrl.text.trim().isEmpty) {
-      _showMessage('Name, location, and contact info are required');
-      return;
-    }
-    
-    final user = AuthService.currentUser;
-    if (user == null) {
-      _showMessage('You must be signed in to report a lost pet');
+ Future<void> _submit() async {
+    // Validation
+    if (_nameCtrl.text.trim().isEmpty ||
+        _locationCtrl.text.trim().isEmpty ||
+        _contactCtrl.text.trim().isEmpty) {
+      _showMessage(
+        "Pet name, location, and contact info are required.",
+      );
       return;
     }
 
     setState(() => _isUploading = true);
+
     try {
-      String photoUrl = '';
+      String photoUrl = "";
+
+      // Upload image to Cloudinary
       if (_mediaFile != null) {
-        photoUrl = await StorageService.uploadLostPetPhoto(file: _mediaFile!, userId: user.uid);
+        photoUrl = await CloudinaryService.uploadImage(_mediaFile!);
       }
 
+      // Save report to Firestore
       await FirestoreService.addLostPetReport(
         LostPetReport(
           id: '',
-          reporterId: user.uid,
+          reporterId:
+              "user_1", // replace later with AuthService.currentUser!.uid
           petName: _nameCtrl.text.trim(),
           species: _speciesCtrl.text.trim(),
           breed: _breedCtrl.text.trim(),
           lastKnownLocation: _locationCtrl.text.trim(),
           contactInfo: _contactCtrl.text.trim(),
           photoUrl: photoUrl,
-          createdAt: DateTime.now(), // Ignored by firestore_service in favor of server timestamp
-        )
+          createdAt: DateTime.now(),
+        ),
       );
-      
-      _showMessage('Lost pet report posted successfully');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Lost pet report posted successfully"),
+        ),
+      );
+
       Navigator.pop(context);
     } catch (e) {
-      _showMessage('Error posting report: ${e.toString()}');
+      debugPrint("Error posting report: $e");
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to post report: $e"),
+        ),
+      );
     } finally {
-      setState(() => _isUploading = false);
+      if (mounted) {
+        setState(() => _isUploading = false);
+      }
     }
   }
-
   @override
   void dispose() {
     _nameCtrl.dispose();

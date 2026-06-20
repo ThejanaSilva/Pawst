@@ -13,9 +13,14 @@
         "firebase_core",
         "firebase_storage",
         "flutter",
+        "flutter_map",
+        "flutter_typeahead",
+        "geocoding",
+        "http",
         "image_picker",
-        "provider",
-        "video_player"
+        "intl",
+        "latlong2",
+        "provider"
       ],
       "devDependencies": [
         "flutter_lints",
@@ -48,16 +53,65 @@
       ]
     },
     {
-      "name": "video_player",
-      "version": "2.11.1",
+      "name": "http",
+      "version": "1.6.0",
       "dependencies": [
-        "collection",
+        "async",
+        "http_parser",
+        "meta",
+        "web"
+      ]
+    },
+    {
+      "name": "geocoding",
+      "version": "2.2.2",
+      "dependencies": [
         "flutter",
-        "html",
-        "video_player_android",
-        "video_player_avfoundation",
-        "video_player_platform_interface",
-        "video_player_web"
+        "geocoding_android",
+        "geocoding_ios",
+        "geocoding_platform_interface"
+      ]
+    },
+    {
+      "name": "intl",
+      "version": "0.18.1",
+      "dependencies": [
+        "clock",
+        "meta",
+        "path"
+      ]
+    },
+    {
+      "name": "flutter_typeahead",
+      "version": "5.2.0",
+      "dependencies": [
+        "flutter",
+        "flutter_keyboard_visibility",
+        "pointer_interceptor"
+      ]
+    },
+    {
+      "name": "latlong2",
+      "version": "0.9.1",
+      "dependencies": [
+        "intl"
+      ]
+    },
+    {
+      "name": "flutter_map",
+      "version": "7.0.2",
+      "dependencies": [
+        "async",
+        "collection",
+        "dart_earcut",
+        "flutter",
+        "http",
+        "latlong2",
+        "logger",
+        "meta",
+        "polylabel",
+        "proj4dart",
+        "vector_math"
       ]
     },
     {
@@ -131,7 +185,7 @@
     },
     {
       "name": "cupertino_icons",
-      "version": "1.0.9",
+      "version": "1.0.8",
       "dependencies": []
     },
     {
@@ -236,47 +290,105 @@
       ]
     },
     {
-      "name": "video_player_web",
-      "version": "2.4.0",
+      "name": "web",
+      "version": "1.1.1",
+      "dependencies": []
+    },
+    {
+      "name": "http_parser",
+      "version": "4.1.2",
       "dependencies": [
-        "flutter",
-        "flutter_web_plugins",
-        "video_player_platform_interface",
-        "web"
+        "collection",
+        "source_span",
+        "string_scanner",
+        "typed_data"
       ]
     },
     {
-      "name": "video_player_platform_interface",
-      "version": "6.7.0",
+      "name": "async",
+      "version": "2.12.0",
+      "dependencies": [
+        "collection",
+        "meta"
+      ]
+    },
+    {
+      "name": "geocoding_ios",
+      "version": "2.3.0",
       "dependencies": [
         "flutter",
+        "geocoding_platform_interface"
+      ]
+    },
+    {
+      "name": "geocoding_android",
+      "version": "3.3.1",
+      "dependencies": [
+        "flutter",
+        "geocoding_platform_interface"
+      ]
+    },
+    {
+      "name": "geocoding_platform_interface",
+      "version": "3.2.0",
+      "dependencies": [
+        "flutter",
+        "meta",
         "plugin_platform_interface"
       ]
     },
     {
-      "name": "video_player_avfoundation",
-      "version": "2.9.6",
+      "name": "pointer_interceptor",
+      "version": "0.10.1+2",
       "dependencies": [
         "flutter",
+        "flutter_web_plugins",
+        "pointer_interceptor_ios",
+        "pointer_interceptor_platform_interface",
+        "pointer_interceptor_web"
+      ]
+    },
+    {
+      "name": "flutter_keyboard_visibility",
+      "version": "6.0.0",
+      "dependencies": [
+        "flutter",
+        "flutter_keyboard_visibility_linux",
+        "flutter_keyboard_visibility_macos",
+        "flutter_keyboard_visibility_platform_interface",
+        "flutter_keyboard_visibility_web",
+        "flutter_keyboard_visibility_windows",
+        "meta"
+      ]
+    },
+    {
+      "name": "proj4dart",
+      "version": "2.1.0",
+      "dependencies": [
         "meta",
-        "video_player_platform_interface"
+        "mgrs_dart",
+        "wkt_parser"
       ]
     },
     {
-      "name": "video_player_android",
-      "version": "2.9.5",
+      "name": "polylabel",
+      "version": "1.0.1",
       "dependencies": [
-        "flutter",
-        "video_player_platform_interface"
+        "collection"
       ]
     },
     {
-      "name": "html",
-      "version": "0.15.6",
+      "name": "logger",
+      "version": "2.7.0",
       "dependencies": [
-        "csslib",
-        "source_span"
+        "clock",
+        "meta"
       ]
+    },
+    {
+      "name": "dart_earcut",
+      "version": "1.2.0",
+      "dependencies": []
     },
     {
       "name": "image_picker_windows",
@@ -300,7 +412,7 @@
     },
     {
       "name": "image_picker_macos",
-      "version": "0.2.2+1",
+      "version": "0.2.2",
       "dependencies": [
         "file_selector_macos",
         "file_selector_platform_interface",
@@ -320,7 +432,7 @@
     },
     {
       "name": "image_picker_ios",
-      "version": "0.8.13+6",
+      "version": "0.8.13",
       "dependencies": [
         "flutter",
         "image_picker_platform_interface"
@@ -338,12 +450,11 @@
     },
     {
       "name": "image_picker_android",
-      "version": "0.8.13+17",
+      "version": "0.8.13+1",
       "dependencies": [
         "flutter",
         "flutter_plugin_android_lifecycle",
-        "image_picker_platform_interface",
-        "meta"
+        "image_picker_platform_interface"
       ]
     },
     {
@@ -472,31 +583,12 @@
       "dependencies": []
     },
     {
-      "name": "async",
-      "version": "2.13.1",
-      "dependencies": [
-        "collection",
-        "meta"
-      ]
-    },
-    {
       "name": "leak_tracker_testing",
       "version": "3.0.2",
       "dependencies": [
         "leak_tracker",
         "matcher",
         "meta"
-      ]
-    },
-    {
-      "name": "leak_tracker",
-      "version": "11.0.2",
-      "dependencies": [
-        "clock",
-        "collection",
-        "meta",
-        "path",
-        "vm_service"
       ]
     },
     {
@@ -513,7 +605,7 @@
     },
     {
       "name": "source_span",
-      "version": "1.10.2",
+      "version": "1.10.1",
       "dependencies": [
         "collection",
         "path",
@@ -529,15 +621,10 @@
       ]
     },
     {
-      "name": "web",
-      "version": "1.1.1",
-      "dependencies": []
-    },
-    {
-      "name": "flutter_web_plugins",
-      "version": "0.0.0",
+      "name": "typed_data",
+      "version": "1.4.0",
       "dependencies": [
-        "flutter"
+        "collection"
       ]
     },
     {
@@ -548,15 +635,97 @@
       ]
     },
     {
-      "name": "csslib",
-      "version": "1.0.2",
+      "name": "pointer_interceptor_web",
+      "version": "0.10.3",
       "dependencies": [
-        "source_span"
+        "flutter",
+        "flutter_web_plugins",
+        "plugin_platform_interface",
+        "pointer_interceptor_platform_interface",
+        "web"
+      ]
+    },
+    {
+      "name": "pointer_interceptor_platform_interface",
+      "version": "0.10.0+1",
+      "dependencies": [
+        "flutter",
+        "plugin_platform_interface"
+      ]
+    },
+    {
+      "name": "pointer_interceptor_ios",
+      "version": "0.10.1",
+      "dependencies": [
+        "flutter",
+        "plugin_platform_interface",
+        "pointer_interceptor_platform_interface"
+      ]
+    },
+    {
+      "name": "flutter_web_plugins",
+      "version": "0.0.0",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
+      "name": "flutter_keyboard_visibility_windows",
+      "version": "1.0.0",
+      "dependencies": [
+        "flutter",
+        "flutter_keyboard_visibility_platform_interface"
+      ]
+    },
+    {
+      "name": "flutter_keyboard_visibility_web",
+      "version": "2.0.0",
+      "dependencies": [
+        "flutter",
+        "flutter_keyboard_visibility_platform_interface",
+        "flutter_web_plugins"
+      ]
+    },
+    {
+      "name": "flutter_keyboard_visibility_macos",
+      "version": "1.0.0",
+      "dependencies": [
+        "flutter",
+        "flutter_keyboard_visibility_platform_interface"
+      ]
+    },
+    {
+      "name": "flutter_keyboard_visibility_linux",
+      "version": "1.0.0",
+      "dependencies": [
+        "flutter",
+        "flutter_keyboard_visibility_platform_interface"
+      ]
+    },
+    {
+      "name": "flutter_keyboard_visibility_platform_interface",
+      "version": "2.0.0",
+      "dependencies": [
+        "flutter",
+        "meta",
+        "plugin_platform_interface"
+      ]
+    },
+    {
+      "name": "wkt_parser",
+      "version": "2.0.0",
+      "dependencies": []
+    },
+    {
+      "name": "mgrs_dart",
+      "version": "2.0.0",
+      "dependencies": [
+        "unicode"
       ]
     },
     {
       "name": "file_selector_windows",
-      "version": "0.9.3+5",
+      "version": "0.9.3+4",
       "dependencies": [
         "cross_file",
         "file_selector_platform_interface",
@@ -574,18 +743,8 @@
       ]
     },
     {
-      "name": "http",
-      "version": "1.6.0",
-      "dependencies": [
-        "async",
-        "http_parser",
-        "meta",
-        "web"
-      ]
-    },
-    {
       "name": "cross_file",
-      "version": "0.3.5+2",
+      "version": "0.3.5",
       "dependencies": [
         "meta",
         "web"
@@ -593,7 +752,7 @@
     },
     {
       "name": "file_selector_macos",
-      "version": "0.9.5",
+      "version": "0.9.4+4",
       "dependencies": [
         "cross_file",
         "file_selector_platform_interface",
@@ -602,7 +761,7 @@
     },
     {
       "name": "file_selector_linux",
-      "version": "0.9.4",
+      "version": "0.9.3+2",
       "dependencies": [
         "cross_file",
         "file_selector_platform_interface",
@@ -616,7 +775,7 @@
     },
     {
       "name": "flutter_plugin_android_lifecycle",
-      "version": "2.0.34",
+      "version": "2.0.31",
       "dependencies": [
         "flutter"
       ]
@@ -640,26 +799,34 @@
       ]
     },
     {
-      "name": "http_parser",
-      "version": "4.1.2",
+      "name": "unicode",
+      "version": "0.3.1",
       "dependencies": [
+        "lists"
+      ]
+    },
+    {
+      "name": "lists",
+      "version": "1.0.1",
+      "dependencies": [
+        "meta"
+      ]
+    },
+    {
+      "name": "leak_tracker",
+      "version": "11.0.2",
+      "dependencies": [
+        "clock",
         "collection",
-        "source_span",
-        "string_scanner",
-        "typed_data"
+        "meta",
+        "path",
+        "vm_service"
       ]
     },
     {
       "name": "vm_service",
-      "version": "15.2.0",
+      "version": "14.3.1",
       "dependencies": []
-    },
-    {
-      "name": "typed_data",
-      "version": "1.4.0",
-      "dependencies": [
-        "collection"
-      ]
     }
   ],
   "configVersion": 1

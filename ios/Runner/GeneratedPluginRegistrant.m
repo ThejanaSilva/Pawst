@@ -30,16 +30,28 @@
 @import firebase_storage;
 #endif
 
+#if __has_include(<flutter_keyboard_visibility/FlutterKeyboardVisibilityPlugin.h>)
+#import <flutter_keyboard_visibility/FlutterKeyboardVisibilityPlugin.h>
+#else
+@import flutter_keyboard_visibility;
+#endif
+
+#if __has_include(<geocoding_ios/GeocodingPlugin.h>)
+#import <geocoding_ios/GeocodingPlugin.h>
+#else
+@import geocoding_ios;
+#endif
+
 #if __has_include(<image_picker_ios/FLTImagePickerPlugin.h>)
 #import <image_picker_ios/FLTImagePickerPlugin.h>
 #else
 @import image_picker_ios;
 #endif
 
-#if __has_include(<video_player_avfoundation/VideoPlayerPlugin.h>)
-#import <video_player_avfoundation/VideoPlayerPlugin.h>
+#if __has_include(<pointer_interceptor_ios/PointerInterceptorIosPlugin.h>)
+#import <pointer_interceptor_ios/PointerInterceptorIosPlugin.h>
 #else
-@import video_player_avfoundation;
+@import pointer_interceptor_ios;
 #endif
 
 @implementation GeneratedPluginRegistrant
@@ -49,8 +61,10 @@
   [FLTFirebaseAuthPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTFirebaseAuthPlugin"]];
   [FLTFirebaseCorePlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTFirebaseCorePlugin"]];
   [FLTFirebaseStoragePlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTFirebaseStoragePlugin"]];
+  [FlutterKeyboardVisibilityPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterKeyboardVisibilityPlugin"]];
+  [GeocodingPlugin registerWithRegistrar:[registry registrarForPlugin:@"GeocodingPlugin"]];
   [FLTImagePickerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTImagePickerPlugin"]];
-  [VideoPlayerPlugin registerWithRegistrar:[registry registrarForPlugin:@"VideoPlayerPlugin"]];
+  [PointerInterceptorIosPlugin registerWithRegistrar:[registry registrarForPlugin:@"PointerInterceptorIosPlugin"]];
 }
 
 @end
