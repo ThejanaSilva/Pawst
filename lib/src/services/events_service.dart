@@ -7,12 +7,12 @@ class EventsService {
 
   /// Stream of all events ordered by dateTime.
   Stream<List<Event>> getEventsStream() {
-    return _eventsCol
-        .orderBy('dateTime')
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Event.fromMap(doc.data() as Map<String, dynamic>, doc.id)
-                .copyWith(id: doc.id))
+    // Order by the correct field name defined in Event model
+    return _eventsCol.orderBy('eventDate').snapshots().map((snapshot) =>
+        snapshot.docs
+            .map((doc) =>
+                Event.fromMap(doc.data() as Map<String, dynamic>, id: doc.id)
+                    .copyWith(id: doc.id))
             .toList());
   }
 
@@ -38,11 +38,10 @@ extension _EventCopy on Event {
     String? organizerId,
     String? title,
     String? description,
-    GeoPoint? location,
-    String? address,
-    DateTime? dateTime,
-    String? imageUrl,
-    int? attendeeCount,
+    String? location,
+    DateTime? eventDate,
+    List<String>? rsvps,
+    DateTime? createdAt,
   }) {
     return Event(
       id: id ?? this.id,
@@ -50,10 +49,9 @@ extension _EventCopy on Event {
       title: title ?? this.title,
       description: description ?? this.description,
       location: location ?? this.location,
-      address: address ?? this.address,
-      dateTime: dateTime ?? this.dateTime,
-      imageUrl: imageUrl ?? this.imageUrl,
-      attendeeCount: attendeeCount ?? this.attendeeCount,
+      eventDate: eventDate ?? this.eventDate,
+      rsvps: rsvps ?? this.rsvps,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

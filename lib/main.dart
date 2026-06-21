@@ -4,10 +4,11 @@ import 'src/screens/feed_screen.dart';
 import 'src/screens/lost_pets_screen.dart';
 import 'src/screens/forum_screen.dart';
 import 'src/screens/events_screen.dart';
-import 'src/screens/chat_rooms_screen.dart';
+// import 'src/screens/chat_rooms_screen.dart'; // Unused import removed
 import 'src/services/auth_service.dart';
 import 'src/services/firebase_service.dart';
 import 'src/screens/pet_profile_screen.dart';
+import 'seed_firestore.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,7 @@ void main() async {
   } catch (e) {
     initError = e;
   }
+  await FirestoreSeed.seedAll();
 
   runApp(PawstApp(initError: initError));
 }
