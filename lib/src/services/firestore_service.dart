@@ -17,10 +17,78 @@ class FirestoreService {
         .where('isFound', isEqualTo: false)
         .orderBy('createdAt', descending: true)
         .snapshots()
+<<<<<<< HEAD
         .map((snap) {
       return snap.docs.map((doc) {
         return LostPetReport.fromMap(doc.data(), id: doc.id);
       }).toList();
+=======
+        .map((snap) => snap.docs.map((doc) => Post.fromMap(doc.data(), id: doc.id)).toList());
+  }
+
+  static Future<void> createPost({
+    required String authorId,
+    required String mediaUrl,
+    required String caption,
+  }) async {
+    await _db.collection('posts').add({
+      'authorId': authorId,
+      'mediaUrl': mediaUrl,
+      'caption': caption,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // --- Pets ---
+  static Stream<List<Pet>> streamUserPets(String userId) {
+    return _db
+        .collection('pets')
+        .where('ownerId', isEqualTo: userId)
+        .snapshots()
+        .map((snap) => snap.docs.map((doc) => Pet.fromMap(doc.data()..['id'] = doc.id)).toList());
+  }
+
+  static Future<void> addPet(Pet pet) async {
+    await _db.collection('pets').add(pet.toMap()..remove('id'));
+  }
+
+  // --- Vaccinations ---
+  static Stream<List<Vaccination>> streamPetVaccinations(String petId, {bool onlyPublic = false}) {
+    var query = _db.collection('vaccinations').where('petId', isEqualTo: petId);
+    if (onlyPublic) {
+      query = query.where('isPublic', isEqualTo: true);
+    }
+    return query.snapshots().map((snap) {
+      return snap.docs.map((doc) => Vaccination.fromMap(doc.data(), id: doc.id)).toList();
+    });
+  }
+
+  static Future<void> addVaccination(Vaccination vac) async {
+    await _db.collection('vaccinations').add(vac.toMap()..remove('id'));
+  }
+
+  // --- Lost Pets ---
+  static Stream<List<LostPetReport>> streamLostPets({bool excludeFound = true}) {
+    // Query the collection, optionally filtering out found reports.
+    // Use a Query type to allow chaining where() without type conflicts.
+    Query<Map<String, dynamic>> query = _db.collection('lost_pets');
+    if (excludeFound) {
+      query = query.where('isFound', isEqualTo: false);
+    }
+    // Retrieve snapshots and sort client‑side by createdAt descending to avoid
+    // requiring a composite index on Firestore (where + orderBy).
+    return query.snapshots().map((snap) {
+      final list = snap.docs
+          .map((doc) => LostPetReport.fromMap(doc.data(), id: doc.id))
+          .toList();
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return list;
+    }).handleError((error, stack) {
+      // Log the error for debugging and return an empty list to avoid UI crash.
+      // In a real app you might use a logging service.
+      print('Error streaming lost pets: $error');
+      return <LostPetReport>[];
+>>>>>>> origin/dev_wta_v2
     });
   }
 

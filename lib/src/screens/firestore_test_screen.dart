@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 /// It writes a test document to the `test/ping` path and then reads it back.
 /// All results are printed to the debug console via `debugPrint`.
 class FirestoreTestScreen extends StatelessWidget {
-  const FirestoreTestScreen({Key? key}) : super(key: key);
+  const FirestoreTestScreen({super.key});
 
   Future<void> _writeTestDoc() async {
     try {

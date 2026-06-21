@@ -8,9 +8,13 @@ import '../models/health_record.dart';
 class PetProfileScreen extends StatefulWidget {
   const PetProfileScreen({super.key});
 
+<<<<<<< HEAD
   @override
   State<PetProfileScreen> createState() => _PetProfileScreenState();
 }
+=======
+  const PetProfileScreen({super.key, required this.pet, this.isOwner = true});
+>>>>>>> origin/dev_wta_v2
 
 class _PetProfileScreenState extends State<PetProfileScreen> {
   bool isEditing = false;

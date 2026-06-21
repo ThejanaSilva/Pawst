@@ -24,7 +24,9 @@ class ChatRoom {
   }
 
   Map<String, dynamic> toMap() {
+    // Include the document ID so that when we write a ChatRoom back to Firestore we preserve its identifier.
     return {
+      'id': id,
       'participants': participants,
       'lastMessage': lastMessage,
       'lastMessageTime': lastMessageTime,

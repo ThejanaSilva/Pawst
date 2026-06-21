@@ -52,3 +52,5 @@ macos/Runner/GoogleService-Info.plist
 firebase.json
 .dart_tool/
 .flutter-plugins-dependencies
+.dart_tool/
+.flutter-plugins-dependencies

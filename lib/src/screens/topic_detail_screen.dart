@@ -6,7 +6,7 @@ import '../services/firestore_service.dart';
 class TopicDetailScreen extends StatefulWidget {
   final ForumTopic topic;
 
-  const TopicDetailScreen({Key? key, required this.topic}) : super(key: key);
+  const TopicDetailScreen({super.key, required this.topic});
 
   @override
   _TopicDetailScreenState createState() => _TopicDetailScreenState();

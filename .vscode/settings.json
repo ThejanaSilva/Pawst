@@ -1,3 +1,8 @@
 {
+<<<<<<< HEAD
   "java.configuration.updateBuildConfiguration": "disabled"
 }
+=======
+    "cmake.ignoreCMakeListsMissing": true
+}
+>>>>>>> origin/dev_wta_v2
