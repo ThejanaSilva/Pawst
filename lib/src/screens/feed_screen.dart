@@ -10,6 +10,61 @@ import 'chat_screen.dart';
 class FeedScreen extends StatelessWidget {
   const FeedScreen({super.key});
 
+  // Shows a dialog to add a new pet. Collects basic details and creates the pet in Firestore.
+  void _showAddPetDialog(BuildContext context, String ownerId) {
+    final nameCtrl = TextEditingController();
+    final speciesCtrl = TextEditingController();
+    final aboutCtrl = TextEditingController();
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (dialogContext, setState) => AlertDialog(
+          title: const Text('Add New Pet'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Name')),
+              TextField(controller: speciesCtrl, decoration: const InputDecoration(labelText: 'Species')),
+              TextField(controller: aboutCtrl, decoration: const InputDecoration(labelText: 'About'), maxLines: 2),
+              if (isSubmitting) const Padding(padding: EdgeInsets.only(top: 12), child: LinearProgressIndicator()),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: isSubmitting ? null : () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      if (nameCtrl.text.trim().isEmpty) return;
+                      setState(() => isSubmitting = true);
+                      try {
+                        await FirestoreService.addPet(
+                          Pet(
+                            id: '',
+                            ownerId: ownerId,
+                            name: nameCtrl.text.trim(),
+                            species: speciesCtrl.text.trim(),
+                            about: aboutCtrl.text.trim(),
+                          ),
+                        );
+                        Navigator.pop(dialogContext);
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add pet: $e')));
+                      } finally {
+                        setState(() => isSubmitting = false);
+                      }
+                    },
+              child: const Text('Add'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,16 +170,7 @@ class FeedScreen extends StatelessWidget {
             title: const Text('My Pets', style: TextStyle(fontWeight: FontWeight.bold)),
             trailing: IconButton(
               icon: const Icon(Icons.add),
-              onPressed: () {
-                // stub for adding pet
-                FirestoreService.addPet(Pet(
-                  id: '',
-                  ownerId: user.uid,
-                  name: 'New Pet ${DateTime.now().second}',
-                  species: 'Dog',
-                  about: 'A good boy',
-                ));
-              },
+              onPressed: () => _showAddPetDialog(context, user.uid),
             ),
           ),
           Expanded(

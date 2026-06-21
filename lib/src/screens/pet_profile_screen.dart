@@ -7,7 +7,7 @@ class PetProfileScreen extends StatelessWidget {
   final Pet pet;
   final bool isOwner;
 
-  const PetProfileScreen({Key? key, required this.pet, this.isOwner = true}) : super(key: key);
+  const PetProfileScreen({super.key, required this.pet, this.isOwner = true});
 
   void _addVaccination(BuildContext context) {
     // A quick dialog to add a vaccination card entry

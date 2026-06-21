@@ -4,28 +4,65 @@ import 'src/screens/feed_screen.dart';
 import 'src/screens/lost_pets_screen.dart';
 import 'src/screens/forum_screen.dart';
 import 'src/screens/events_screen.dart';
-import 'src/screens/chat_rooms_screen.dart';
+// import 'src/screens/chat_rooms_screen.dart'; // Unused import removed
 import 'src/services/auth_service.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Added for User type
 import 'src/services/firebase_service.dart';
+import 'src/screens/profile_screen.dart';
+import 'seed_firestore.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await FirebaseService.init();
-  runApp(const PawstApp());
+
+  // Initialise Firebase and, only if successful, seed the Firestore emulator.
+  Object? initError;
+  try {
+    await FirebaseService.init();
+    // Seed data only when Firebase initialisation succeeded.
+    await FirestoreSeed.seedAll();
+  } catch (e) {
+    // Capture any initialisation error; we avoid seeding in this case because the
+    // Firebase services are not ready, which would otherwise cause further
+    // exceptions.
+    initError = e;
+  }
+
+  runApp(PawstApp(initError: initError));
 }
 
 class PawstApp extends StatelessWidget {
-  const PawstApp({super.key});
+  const PawstApp({super.key, this.initError});
+
+  final Object? initError;
 
   @override
   Widget build(BuildContext context) {
-    // Temporary simple home to verify UI rendering.
     return MaterialApp(
       title: 'Pawst!',
       theme: ThemeData(primarySwatch: Colors.teal),
-      // Use AuthGate to handle authentication flow and then show the main UI.
-      home: const AuthGate(),
+      home:
+          initError == null ? const AuthGate() : ErrorScreen(error: initError!),
+    );
+  }
+}
+
+class ErrorScreen extends StatelessWidget {
+  const ErrorScreen({super.key, required this.error});
+
+  final Object error;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Startup Error')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: Text(
+            'Failed to initialize Firebase:\n$error',
+            style: const TextStyle(fontSize: 16),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -39,18 +76,23 @@ class MainHomeScreen extends StatefulWidget {
 
 class _MainHomeScreenState extends State<MainHomeScreen> {
   int _idx = 0;
-  final _screens = [const FeedScreen(), const LostPetsScreen(), const ForumScreen(), const EventsScreen(), const ChatRoomsScreen()];
+  final _screens = [
+    const FeedScreen(),
+    const LostPetsScreen(),
+    const ForumScreen(),
+    const EventsScreen(),
+    // Real profile screen that loads the current user's first pet.
+    const ProfileScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('🔎 Building MainHomeScreen');
-    // Debug container to verify UI rendering. Replace the normal screen body with a solid red box.
     return Scaffold(
-      // Show the currently selected screen from the list.
       body: _screens[_idx],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _idx,
-        type: BottomNavigationBarType.fixed,
+        type: BottomNavigationBarType
+            .fixed, // Added this since > 3 items requires fixed type to show colors properly
         selectedItemColor: Colors.teal,
         unselectedItemColor: Colors.grey,
         onTap: (i) => setState(() => _idx = i),
@@ -59,7 +101,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Lost Pets'),
           BottomNavigationBarItem(icon: Icon(Icons.forum), label: 'Forum'),
           BottomNavigationBarItem(icon: Icon(Icons.event), label: 'Events'),
-          BottomNavigationBarItem(icon: Icon(Icons.mail), label: 'Chats'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
@@ -71,22 +113,16 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
+    return StreamBuilder(
       stream: AuthService.authStateChanges(),
       builder: (context, snapshot) {
-        // Log snapshot state for debugging.
-        debugPrint('🔎 AuthGate snapshot: connection=${snapshot.connectionState}, hasData=${snapshot.hasData}, error=${snapshot.error}');
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
-        }
-        if (snapshot.hasError) {
-          return Scaffold(body: Center(child: Text('Auth error: ${snapshot.error}')));
+          return const Scaffold(
+              body: Center(child: CircularProgressIndicator()));
         }
         if (snapshot.data != null) {
-          // User is signed in – navigate to the main home screen.
-          return const MainHomeScreen();
+          return const MainHomeScreen(); // Replaced FeedScreen directly with MainHomeScreen
         }
-        // No user signed in – show the auth screen.
         return const AuthScreen();
       },
     );

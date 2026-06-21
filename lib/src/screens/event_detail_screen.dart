@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../models/event.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
@@ -6,7 +8,7 @@ import '../services/firestore_service.dart';
 class EventDetailScreen extends StatefulWidget {
   final Event event;
 
-  const EventDetailScreen({Key? key, required this.event}) : super(key: key);
+  const EventDetailScreen({super.key, required this.event});
 
   @override
   _EventDetailScreenState createState() => _EventDetailScreenState();
@@ -72,6 +74,36 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 const SizedBox(width: 8),
                 Text(widget.event.address, style: const TextStyle(fontSize: 16)),
               ],
+            ),
+            const SizedBox(height: 12),
+            // Map view of the event location
+            SizedBox(
+              height: 200,
+              child: FlutterMap(
+                options: MapOptions(
+                  // Updated for flutter_map 8.x: use initialCenter and initialZoom
+                  initialCenter: LatLng(widget.event.location.latitude, widget.event.location.longitude),
+                  initialZoom: 13,
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: "https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png",
+                    subdomains: const ['a', 'b', 'c'],
+                    userAgentPackageName: 'com.example.pawst_app',
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: LatLng(widget.event.location.latitude, widget.event.location.longitude),
+                        width: 40,
+                        height: 40,
+                        // Updated for flutter_map 8.x: use 'child' instead of 'builder'
+                        child: const Icon(Icons.location_pin, color: Colors.red, size: 40),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 12),
             Row(

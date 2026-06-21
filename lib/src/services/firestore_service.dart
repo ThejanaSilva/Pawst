@@ -62,12 +62,25 @@ class FirestoreService {
 
   // --- Lost Pets ---
   static Stream<List<LostPetReport>> streamLostPets({bool excludeFound = true}) {
-    var query = _db.collection('lost_pets').orderBy('createdAt', descending: true);
+    // Query the collection, optionally filtering out found reports.
+    // Use a Query type to allow chaining where() without type conflicts.
+    Query<Map<String, dynamic>> query = _db.collection('lost_pets');
     if (excludeFound) {
       query = query.where('isFound', isEqualTo: false);
     }
+    // Retrieve snapshots and sort client‑side by createdAt descending to avoid
+    // requiring a composite index on Firestore (where + orderBy).
     return query.snapshots().map((snap) {
-      return snap.docs.map((doc) => LostPetReport.fromMap(doc.data(), id: doc.id)).toList();
+      final list = snap.docs
+          .map((doc) => LostPetReport.fromMap(doc.data(), id: doc.id))
+          .toList();
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return list;
+    }).handleError((error, stack) {
+      // Log the error for debugging and return an empty list to avoid UI crash.
+      // In a real app you might use a logging service.
+      print('Error streaming lost pets: $error');
+      return <LostPetReport>[];
     });
   }
 
