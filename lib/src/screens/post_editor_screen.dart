@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../models/post.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
@@ -40,7 +41,16 @@ class _PostEditorScreenState extends State<PostEditorScreen> {
     setState(() => _isUploading = true);
     try {
       final url = await StorageService.uploadPostMedia(file: _mediaFile!, userId: user.uid);
-      await FirestoreService.createPost(authorId: user.uid, mediaUrl: url, caption: _captionCtrl.text.trim());
+        final post = Post(
+          id: '',
+          username: user.uid,
+          imageUrl: url,
+          caption: _captionCtrl.text.trim(),
+          timeAgo: 'Just now',
+          paws: 0,
+          comments: [],
+        );
+        await FirestoreService.createPost(post);
       _showMessage('Post uploaded');
       Navigator.pop(context);
     } catch (e) {

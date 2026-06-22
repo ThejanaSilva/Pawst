@@ -1,63 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/pet.dart';
+import '../services/firestore_service.dart';
+import '../services/auth_service.dart';
+import 'pet_profile_screen.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
-
-  // Shows a dialog to add a new pet. Collects basic details and creates the pet in Firestore.
-  void _showAddPetDialog(BuildContext context, String ownerId) {
-    final nameCtrl = TextEditingController();
-    final speciesCtrl = TextEditingController();
-    final aboutCtrl = TextEditingController();
-    bool isSubmitting = false;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (dialogContext, setState) => AlertDialog(
-          title: const Text('Add New Pet'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Name')),
-              TextField(controller: speciesCtrl, decoration: const InputDecoration(labelText: 'Species')),
-              TextField(controller: aboutCtrl, decoration: const InputDecoration(labelText: 'About'), maxLines: 2),
-              if (isSubmitting) const Padding(padding: EdgeInsets.only(top: 12), child: LinearProgressIndicator()),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: isSubmitting ? null : () => Navigator.pop(dialogContext), child: const Text('Cancel')),
-            ElevatedButton(
-              onPressed: isSubmitting
-                  ? null
-                  : () async {
-                      if (nameCtrl.text.trim().isEmpty) return;
-                      setState(() => isSubmitting = true);
-                      try {
-                        await FirestoreService.addPet(
-                          Pet(
-                            id: '',
-                            ownerId: ownerId,
-                            name: nameCtrl.text.trim(),
-                            species: speciesCtrl.text.trim(),
-                            about: aboutCtrl.text.trim(),
-                          ),
-                        );
-                        Navigator.pop(dialogContext);
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add pet: $e')));
-                      } finally {
-                        setState(() => isSubmitting = false);
-                      }
-                    },
-              child: const Text('Add'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   State<FeedScreen> createState() => _FeedScreenState();
@@ -65,9 +14,7 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
-
-  final String currentUserId = "user_001"; // replace with auth later
-
+  final String currentUserId = "user_001";
   final Map<String, bool> showPawAnimation = {};
 
   // =========================
@@ -83,18 +30,16 @@ class _FeedScreenState extends State<FeedScreen> {
   // =========================
   // TOGGLE PAW (LIKE)
   // =========================
-  Future<void> togglePaw(String postId, List pawUsers) async {
+  // Toggle the paw (like) state for a post.
+  // The Firestore document stores a boolean 'isPawed' and an integer 'paws'.
+  // This method flips the boolean and updates the count accordingly.
+  Future<void> togglePaw(String postId, bool isCurrentlyPawed, int currentPaws) async {
     final ref = _db.collection('posts').doc(postId);
-
-    if (pawUsers.contains(currentUserId)) {
-      pawUsers.remove(currentUserId);
-    } else {
-      pawUsers.add(currentUserId);
-    }
-
+    final newPawed = !isCurrentlyPawed;
+    final newPaws = newPawed ? currentPaws + 1 : (currentPaws > 0 ? currentPaws - 1 : 0);
     await ref.update({
-      'pawUsers': pawUsers,
-      'pawsCount': pawUsers.length,
+      'isPawed': newPawed,
+      'paws': newPaws,
     });
   }
 
@@ -118,7 +63,6 @@ class _FeedScreenState extends State<FeedScreen> {
   // =========================
   void _showComments(String postId) {
     final controller = TextEditingController();
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -134,7 +78,6 @@ class _FeedScreenState extends State<FeedScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const Divider(),
-
               // COMMENTS STREAM
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
@@ -148,20 +91,15 @@ class _FeedScreenState extends State<FeedScreen> {
                     if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
                     }
-
                     final comments = snapshot.data!.docs;
-
                     if (comments.isEmpty) {
                       return const Center(child: Text("No comments yet"));
                     }
-
                     return ListView(
                       children: comments.map((doc) {
                         final c = doc.data() as Map<String, dynamic>;
-
                         return ListTile(
-                          leading:
-                              const CircleAvatar(child: Icon(Icons.person)),
+                          leading: const CircleAvatar(child: Icon(Icons.person)),
                           title: Text(
                             c['username'] ?? '',
                             style: const TextStyle(fontWeight: FontWeight.bold),
@@ -173,9 +111,7 @@ class _FeedScreenState extends State<FeedScreen> {
                   },
                 ),
               ),
-
               const Divider(height: 1),
-
               // INPUT
               Padding(
                 padding: const EdgeInsets.all(8),
@@ -197,12 +133,10 @@ class _FeedScreenState extends State<FeedScreen> {
                       onPressed: () async {
                         final text = controller.text.trim();
                         if (text.isEmpty) return;
-
                         await addComment(
                           postId: postId,
                           text: text,
                         );
-
                         controller.clear();
                       },
                     ),
@@ -223,7 +157,6 @@ class _FeedScreenState extends State<FeedScreen> {
     setState(() {
       showPawAnimation[postId] = true;
     });
-
     Future.delayed(const Duration(milliseconds: 700), () {
       if (mounted) {
         setState(() {
@@ -231,6 +164,156 @@ class _FeedScreenState extends State<FeedScreen> {
         });
       }
     });
+  }
+
+  // =========================
+  // SHOW ADD PET DIALOG
+  // =========================
+  void _showAddPetDialog(BuildContext context, String ownerId) {
+    final nameCtrl = TextEditingController();
+    final speciesCtrl = TextEditingController();
+    final aboutCtrl = TextEditingController();
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (dialogContext, setState) => AlertDialog(
+          title: const Text('Add New Pet'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: speciesCtrl,
+                decoration: const InputDecoration(labelText: 'Species'),
+              ),
+              TextField(
+                controller: aboutCtrl,
+                decoration: const InputDecoration(labelText: 'About'),
+                maxLines: 2,
+              ),
+              if (isSubmitting)
+                const Padding(
+                  padding: EdgeInsets.only(top: 12),
+                  child: LinearProgressIndicator(),
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isSubmitting ? null : () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      if (nameCtrl.text.trim().isEmpty) return;
+                      setState(() => isSubmitting = true);
+                      try {
+                        await FirestoreService.addPet(
+                          Pet(
+                            id: '',
+                            ownerId: ownerId,
+                            name: nameCtrl.text.trim(),
+                            species: speciesCtrl.text.trim(),
+                            breed: '',
+                            gender: '',
+                            bio: '',
+                            about: aboutCtrl.text.trim(),
+                            imageUrl: '',
+                            weightKg: 0.0,
+                            ageYears: 0,
+                            friendlinessLevel: 0,
+                            goodWithDogs: false,
+                            goodWithCats: false,
+                            goodWithChildren: false,
+                            vaccinationPdfName: '',
+                            vaccinations: const [],
+                            appointments: const [],
+                            healthRecords: const [],
+                          ),
+                        );
+                        Navigator.pop(dialogContext);
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to add pet: $e')),
+                        );
+                      } finally {
+                        setState(() => isSubmitting = false);
+                      }
+                    },
+              child: const Text('Add'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // =========================
+  // SHOW MY PETS
+  // =========================
+  void _showMyPets(BuildContext context) {
+    final user = AuthService.currentUser;
+    if (user == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => Column(
+        children: [
+          ListTile(
+            title: const Text(
+              'My Pets',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () => _showAddPetDialog(context, user.uid),
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder<List<Pet>>(
+              stream: FirestoreService.streamUserPets(user.uid),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final pets = snapshot.data!;
+                if (pets.isEmpty) {
+                  return const Center(child: Text('No pets yet. Tap + to add.'));
+                }
+                return ListView.builder(
+                  itemCount: pets.length,
+                  itemBuilder: (context, i) {
+                    final pet = pets[i];
+                    return ListTile(
+                      leading: const Icon(Icons.pets),
+                      title: Text(pet.name),
+                      subtitle: Text(pet.species),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PetProfileScreen(pet: pet),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // =========================
@@ -245,6 +328,12 @@ class _FeedScreenState extends State<FeedScreen> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.pets),
+            onPressed: () => _showMyPets(context),
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: streamPosts(),
@@ -252,9 +341,7 @@ class _FeedScreenState extends State<FeedScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
           final posts = snapshot.data?.docs ?? [];
-
           if (posts.isEmpty) {
             return const Center(
               child: Text(
@@ -263,17 +350,14 @@ class _FeedScreenState extends State<FeedScreen> {
               ),
             );
           }
-
           return ListView.builder(
             itemCount: posts.length,
             itemBuilder: (context, index) {
               final doc = posts[index];
               final post = doc.data() as Map<String, dynamic>;
-
               final postId = doc.id;
               final pawUsers = List.from(post['pawUsers'] ?? []);
               final pawsCount = post['pawsCount'] ?? 0;
-
               final isPawed = pawUsers.contains(currentUserId);
 
               return Column(
@@ -288,12 +372,11 @@ class _FeedScreenState extends State<FeedScreen> {
                     ),
                     trailing: const Icon(Icons.more_vert),
                   ),
-
                   // IMAGE
                   GestureDetector(
                     onDoubleTap: () async {
                       _showPawAnim(postId);
-                      await togglePaw(postId, pawUsers);
+                      await togglePaw(postId, isPawed, pawsCount);
                     },
                     child: Stack(
                       alignment: Alignment.center,
@@ -317,7 +400,6 @@ class _FeedScreenState extends State<FeedScreen> {
                       ],
                     ),
                   ),
-
                   // ACTIONS
                   Row(
                     children: [
@@ -327,7 +409,7 @@ class _FeedScreenState extends State<FeedScreen> {
                           color: isPawed ? Colors.orange : Colors.grey.shade700,
                         ),
                         onPressed: () async {
-                          await togglePaw(postId, pawUsers);
+                          await togglePaw(postId, isPawed, pawsCount);
                         },
                       ),
                       IconButton(
@@ -349,7 +431,6 @@ class _FeedScreenState extends State<FeedScreen> {
                       ),
                     ],
                   ),
-
                   // PAW COUNT
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -358,9 +439,7 @@ class _FeedScreenState extends State<FeedScreen> {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
-
                   const SizedBox(height: 6),
-
                   // CAPTION
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -377,7 +456,6 @@ class _FeedScreenState extends State<FeedScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 12),
                   const Divider(),
                 ],
@@ -388,52 +466,4 @@ class _FeedScreenState extends State<FeedScreen> {
       ),
     );
   }
-<<<<<<< HEAD
-=======
-
-  void _showMyPets(BuildContext context) {
-    final user = AuthService.currentUser;
-    if (user == null) return;
-
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => Column(
-        children: [
-          ListTile(
-            title: const Text('My Pets', style: TextStyle(fontWeight: FontWeight.bold)),
-            trailing: IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => _showAddPetDialog(context, user.uid),
-            ),
-          ),
-          Expanded(
-            child: StreamBuilder<List<Pet>>(
-              stream: FirestoreService.streamUserPets(user.uid),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                final pets = snapshot.data!;
-                if (pets.isEmpty) return const Center(child: Text('No pets yet. Tap + to add.'));
-                return ListView.builder(
-                  itemCount: pets.length,
-                  itemBuilder: (context, i) {
-                    final pet = pets[i];
-                    return ListTile(
-                      leading: const Icon(Icons.pets),
-                      title: Text(pet.name),
-                      subtitle: Text(pet.species),
-                      onTap: () {
-                        Navigator.pop(ctx); // close bottom sheet
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => PetProfileScreen(pet: pet)));
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-          )
-        ],
-      ),
-    );
-  }
->>>>>>> origin/dev_wta_v2
 }

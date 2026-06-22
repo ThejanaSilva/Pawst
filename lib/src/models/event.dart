@@ -5,10 +5,12 @@ class Event {
   final String organizerId;
   final String title;
   final String description;
-  final String location;
-  final DateTime eventDate;
-  final List<String> rsvps; // User IDs of attendees
-  final DateTime createdAt;
+  final GeoPoint location;
+  final String address;
+  final DateTime dateTime;
+  final String? imageUrl;
+  final int attendeeCount;
+  final List<String> attendeeIds;
 
   Event({
     required this.id,
@@ -16,68 +18,40 @@ class Event {
     required this.title,
     required this.description,
     required this.location,
-    required this.eventDate,
-    this.rsvps = const [],
-    required this.createdAt,
+    required this.address,
+    required this.dateTime,
+    this.imageUrl,
+    this.attendeeCount = 0,
+    this.attendeeIds = const [],
   });
 
-<<<<<<< HEAD
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'organizerId': organizerId,
-        'title': title,
-        'description': description,
-        'location': location,
-        'eventDate': eventDate,
-        'rsvps': rsvps,
-        'createdAt': createdAt,
-      };
-
-  static Event fromMap(Map<String, dynamic> m, {String id = ''}) {
-    DateTime parseDate(dynamic val) {
-      if (val is Timestamp) return val.toDate();
-      if (val is DateTime) return val;
-      return DateTime.tryParse((val ?? '').toString()) ?? DateTime.now();
-    }
-
-    return Event(
-      id: id.isNotEmpty ? id : (m['id'] ?? ''),
-      organizerId: m['organizerId'] ?? '',
-      title: m['title'] ?? '',
-      description: m['description'] ?? '',
-      location: m['location'] ?? '',
-      eventDate: parseDate(m['eventDate']),
-      rsvps: List<String>.from(m['rsvps'] ?? []),
-      createdAt: parseDate(m['createdAt']),
-    );
-  }
-=======
   /// Convert Firestore document data to an [Event] instance.
-  factory Event.fromMap(Map<String, dynamic> data, String documentId) {
+  factory Event.fromMap(Map<String, dynamic> data, {required String id}) {
     // Defensive parsing to avoid runtime crashes when fields are missing or of unexpected type.
-    // Firestore may omit optional fields; provide sensible defaults.
     final GeoPoint location = data['location'] is GeoPoint
         ? data['location'] as GeoPoint
         : const GeoPoint(0, 0);
     final Timestamp? ts = data['dateTime'] as Timestamp?;
     final DateTime dateTime = ts != null ? ts.toDate() : DateTime.now();
-
+    final attendeeIds = (data['attendeeIds'] as List<dynamic>?)
+        ?.map((e) => e.toString())
+        .toList() ?? [];
     return Event(
-      id: documentId,
-      organizerId: data['organizerId'] ?? '',
-      title: data['title'] ?? '',
-      description: data['description'] ?? '',
+      id: id,
+      organizerId: data['organizerId'] as String? ?? '',
+      title: data['title'] as String? ?? '',
+      description: data['description'] as String? ?? '',
       location: location,
-      address: data['address'] ?? '',
+      address: data['address'] as String? ?? '',
       dateTime: dateTime,
       imageUrl: data['imageUrl'] as String?,
-      attendeeCount: data['attendeeCount'] ?? 0,
+      attendeeCount: data['attendeeCount'] as int? ?? 0,
+      attendeeIds: attendeeIds,
     );
   }
 
   /// Serialize the [Event] to a map suitable for Firestore.
   Map<String, dynamic> toMap() {
-    // Include the document ID for consistency with other models.
     return {
       'id': id,
       'organizerId': organizerId,
@@ -88,8 +62,7 @@ class Event {
       'dateTime': Timestamp.fromDate(dateTime),
       'imageUrl': imageUrl,
       'attendeeCount': attendeeCount,
+      'attendeeIds': attendeeIds,
     };
-
   }
->>>>>>> origin/dev_wta_v2
 }

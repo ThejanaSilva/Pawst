@@ -7,25 +7,13 @@ import 'src/screens/events_screen.dart';
 // import 'src/screens/chat_rooms_screen.dart'; // Unused import removed
 import 'src/services/auth_service.dart';
 import 'src/services/firebase_service.dart';
-<<<<<<< HEAD
-import 'src/screens/pet_profile_screen.dart';
-=======
+// import 'src/screens/pet_profile_screen.dart'; // Unused import removed
 import 'src/screens/profile_screen.dart';
->>>>>>> origin/dev_wta_v2
 import 'seed_firestore.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-<<<<<<< HEAD
-  Object? initError;
-  try {
-    await FirebaseService.init();
-  } catch (e) {
-    initError = e;
-  }
-  await FirestoreSeed.seedAll();
-=======
   // Initialise Firebase and, only if successful, seed the Firestore emulator.
   Object? initError;
   try {
@@ -38,7 +26,6 @@ void main() async {
     // exceptions.
     initError = e;
   }
->>>>>>> origin/dev_wta_v2
 
   runApp(PawstApp(initError: initError));
 }
@@ -95,12 +82,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     const LostPetsScreen(),
     const ForumScreen(),
     const EventsScreen(),
-<<<<<<< HEAD
-    const PetProfileScreen(),
-=======
     // Real profile screen that loads the current user's first pet.
     const ProfileScreen(),
->>>>>>> origin/dev_wta_v2
   ];
 
   @override

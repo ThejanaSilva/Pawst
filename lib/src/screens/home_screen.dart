@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'feed_screen.dart';
 import 'pet_profile_screen.dart'; // Import PetProfileScreen
+import '../models/pet.dart'; // Import Pet model for placeholder
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,7 +16,31 @@ class _HomeScreenState extends State<HomeScreen> {
   // Updated to use PetProfileScreen instead of undefined ProfileScreen
   final pages = const [
     FeedScreen(),
-    PetProfileScreen(),
+    // Provide a placeholder Pet instance to satisfy the required 'pet' parameter.
+    PetProfileScreen(
+      pet: Pet(
+        id: '',
+        ownerId: '',
+        name: 'Placeholder',
+        species: 'Dog',
+        breed: 'Mixed',
+        gender: 'Male',
+        bio: '',
+        about: '',
+        imageUrl: '',
+        weightKg: 0.0,
+        ageYears: 0,
+        friendlinessLevel: 3,
+        goodWithDogs: true,
+        goodWithCats: true,
+        goodWithChildren: true,
+        vaccinationPdfName: '',
+        vaccinations: [],
+        appointments: [],
+        healthRecords: [],
+      ),
+      isOwner: true,
+    ),
   ];
 
   @override

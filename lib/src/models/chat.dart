@@ -23,8 +23,16 @@ class ChatRoom {
     );
   }
 
+  factory ChatRoom.fromMap(Map<String, dynamic> data, {required String id}) {
+    return ChatRoom(
+      id: id,
+      participants: List<String>.from(data['participants'] ?? []),
+      lastMessage: data['lastMessage'],
+      lastMessageTime: _parseTimestampOrDateTime(data['lastMessageTime']),
+    );
+  }
+
   Map<String, dynamic> toMap() {
-    // Include the document ID so that when we write a ChatRoom back to Firestore we preserve its identifier.
     return {
       'id': id,
       'participants': participants,
@@ -37,15 +45,15 @@ class ChatRoom {
 class ChatMessage {
   final String id;
   final String senderId;
-  final String content;
-  final DateTime createdAt;
+  final String text;
+  final DateTime timestamp;
   final bool isRead;
 
   ChatMessage({
     required this.id,
     required this.senderId,
-    required this.content,
-    required this.createdAt,
+    required this.text,
+    required this.timestamp,
     this.isRead = false,
   });
 
@@ -54,8 +62,18 @@ class ChatMessage {
     return ChatMessage(
       id: doc.id,
       senderId: data['senderId'] ?? '',
-      content: data['content'] ?? '',
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      text: data['text'] ?? '',
+      timestamp: _parseTimestampOrDateTime(data['timestamp']) ?? DateTime.now(),
+      isRead: data['isRead'] ?? false,
+    );
+  }
+
+  factory ChatMessage.fromMap(Map<String, dynamic> data, {required String id}) {
+    return ChatMessage(
+      id: id,
+      senderId: data['senderId'] ?? '',
+      text: data['text'] ?? '',
+      timestamp: _parseTimestampOrDateTime(data['timestamp']) ?? DateTime.now(),
       isRead: data['isRead'] ?? false,
     );
   }
@@ -63,9 +81,17 @@ class ChatMessage {
   Map<String, dynamic> toMap() {
     return {
       'senderId': senderId,
-      'content': content,
-      'createdAt': createdAt,
+      'text': text,
+      'timestamp': timestamp,
       'isRead': isRead,
     };
   }
+}
+
+DateTime? _parseTimestampOrDateTime(dynamic value) {
+  if (value == null) return null;
+  if (value is Timestamp) return value.toDate();
+  if (value is DateTime) return value;
+  if (value is String) return DateTime.tryParse(value);
+  return null;
 }

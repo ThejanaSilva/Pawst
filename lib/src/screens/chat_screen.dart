@@ -61,7 +61,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           color: isMe ? Colors.teal[100] : Colors.grey[300],
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text(m.content),
+                        child: Text(m.text),
                       ),
                     );
                   },

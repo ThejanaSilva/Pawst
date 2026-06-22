@@ -6,15 +6,18 @@ import '../models/appointment.dart';
 import '../models/health_record.dart';
 
 class PetProfileScreen extends StatefulWidget {
-  const PetProfileScreen({super.key});
+  final Pet pet;
+  final bool isOwner;
 
-<<<<<<< HEAD
+  const PetProfileScreen({
+    super.key,
+    required this.pet,
+    this.isOwner = true,
+  });
+
   @override
   State<PetProfileScreen> createState() => _PetProfileScreenState();
 }
-=======
-  const PetProfileScreen({super.key, required this.pet, this.isOwner = true});
->>>>>>> origin/dev_wta_v2
 
 class _PetProfileScreenState extends State<PetProfileScreen> {
   bool isEditing = false;
@@ -66,7 +69,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
 
       // Assuming Pet has a fromDocument factory constructor
       // Convert Firestore document to Pet model using fromMap
-      final data = doc.data() as Map<String, dynamic>?;
+      final data = doc.data();
       if (data != null) {
         pet = Pet.fromMap(data);
       } else {
